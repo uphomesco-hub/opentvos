@@ -10,7 +10,7 @@ This is the active `io.freemytv` home-screen fork. The repository root preserves
 - Netflix entries come from explicit Continue Watching notifications; Prime entries come from playback observed on this TV. Up to 15 incomplete entries per app are retained for 14 days. Other apps appear only if they publish readable Watch Next continuation entries.
 - This is observed device history, not the full streaming-account history. No recommendation is presented as a watched title. An unavailable resume action opens the app with an explanatory message.
 - Original provider artwork is preferred, decoding is bounded, and small thumbnails are kept at a sensible size rather than enlarged across the hero.
-- New right-side Settings and Control Centre: Light/Dark/Automatic, glass style, app shelf, local weather/AQI controls, native TV settings, and manual StandBy clock layouts. The original automatic screensaver remains separate.
+- New right-side Settings and Control Centre: Light/Dark/Automatic, glass style, app shelf, local weather/AQI controls, native TV settings, and manual StandBy clock layouts. The default StandBy uses the recovered tvOS analog clock at left, digital time below it, and its calendar at right. The original automatic screensaver remains separate.
 
 ## Build
 
@@ -24,6 +24,6 @@ Host tests: compile `WatchHistoryPolicy.java`, `IndianAqi.java`, and `tests/*.ja
 
 ## Rollback
 
-A local pre-hybrid APK is saved outside this repository in `tv-audit/hybrid-20261022/FreeMyTV-before-hybrid.apk`. Reinstall it with the same signing identity (allow version downgrade if the platform requires it), then open `io.freemytv/.HomeActivity`. HomeOnFire, notification access, user data, and the configured original screensaver component are preserved by this update.
+The exact pre-hybrid APK is saved outside this repository in `tv-audit/hybrid-20261022/FreeMyTV-before-hybrid.apk`. A separately rebuilt original-interface restore APK, `FreeMyTV-original-interface-restore-v4.apk`, has version code 4 and the same signing identity, so it can replace this version-3 preview without a downgrade or clearing app data. Install that restore APK with `adb install -r`, then open `io.freemytv/.HomeActivity`. HomeOnFire, notification access, user data, and the configured original screensaver component are preserved by this update.
 
 Upstream Android source: https://github.com/simbasjungles/free-my-tv . Its license is preserved in LICENSE.
