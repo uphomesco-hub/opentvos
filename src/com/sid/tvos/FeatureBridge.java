@@ -16,6 +16,7 @@ public final class FeatureBridge {
     private static final Map<Activity, Integer> focusVersions = new WeakHashMap<>();
 
     public static void initialize(Context context) {
+        FavouriteDefaults.apply(context);
         LocalFeatures.init(context);
         PlaybackHistory.init(context);
         Discovery.init(context);
