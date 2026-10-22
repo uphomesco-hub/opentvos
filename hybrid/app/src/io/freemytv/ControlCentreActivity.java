@@ -25,6 +25,7 @@ public final class ControlCentreActivity extends Activity {
 
     @Override public void onCreate(Bundle saved) {
         super.onCreate(saved); Ui.init(this);
+        if(saved!=null)focusId=saved.getInt("control-focus",101);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getWindow().setWindowAnimations(0); overridePendingTransition(0,0);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
@@ -49,6 +50,10 @@ public final class ControlCentreActivity extends Activity {
         if(focused!=null && focused.getId()!=View.NO_ID) focusId=focused.getId();
         if(panel!=null) { panel.animate().cancel(); panel.setScaleX(1);panel.setScaleY(1);panel.setAlpha(1);panel.setVisibility(View.INVISIBLE); }
         super.onPause();
+    }
+    @Override protected void onSaveInstanceState(Bundle out) {
+        out.putInt("control-focus",focusId==0?101:focusId);
+        super.onSaveInstanceState(out);
     }
     @Override public void onWindowFocusChanged(boolean focused) {
         super.onWindowFocusChanged(focused);
@@ -99,11 +104,7 @@ public final class ControlCentreActivity extends Activity {
     }
     private void render() {
         dark=night();prefsVersion=Prefs.version;root=new FrameLayout(this);root.setOnClickListener(v->close());root.setFocusable(false);root.setFocusableInTouchMode(false);root.setClipChildren(false);root.setClipToPadding(false);
-        android.graphics.Bitmap ambient=HomeActivity.controlBackground(dark);
-        if(ambient!=null && !ambient.isRecycled()) {
-            android.graphics.drawable.BitmapDrawable backdrop=new android.graphics.drawable.BitmapDrawable(getResources(),ambient);
-            backdrop.setGravity(Gravity.FILL);backdrop.setFilterBitmap(true);root.setBackground(backdrop);
-        } else root.setBackgroundColor(dark?0xff161619:0xffececf1);
+        ControlBackdrop.apply(this,root,dark);
         panel=new LinearLayout(this);panel.setOrientation(LinearLayout.VERTICAL);panel.setPadding(d(6),d(6),d(6),d(6));
         panel.setClipChildren(false);panel.setClipToPadding(false);panel.setClickable(true);panel.setFocusable(false);panel.setFocusableInTouchMode(false);
         FrameLayout.LayoutParams place=new FrameLayout.LayoutParams(d(262),-2,Gravity.TOP|Gravity.RIGHT);

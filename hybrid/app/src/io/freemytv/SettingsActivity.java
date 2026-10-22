@@ -89,8 +89,10 @@ public class SettingsActivity extends Activity {
         panel.addView(column);
         setContentView(root);
         paintPanel();
-        push("Settings", this::settings);
-        if ("profile".equals(getIntent().getStringExtra("page"))) push("Profile", this::profile);
+        if(!restorePages(state)){
+            push("Settings", this::settings);
+            if ("profile".equals(getIntent().getStringExtra("page"))) push("Profile", this::profile);
+        }
         panel.setTranslationX(dp(70)); panel.setAlpha(0);
         panel.animate().translationX(0).alpha(1).setDuration(220).start();
         if (getIntent().getBooleanExtra("screensaver", false)) root.post(this::showPreview);
@@ -106,9 +108,32 @@ public class SettingsActivity extends Activity {
         if (intent.getBooleanExtra("screensaver", false)) root.post(this::showPreview);
     }
 
+    @Override protected void onSaveInstanceState(Bundle out){
+        savePosition();ArrayList<Bundle> pages=new ArrayList<>();
+        for(Page p:stack){Bundle b=new Bundle();b.putString("title",p.title);b.putInt("focus",p.focus);b.putInt("focus-id",p.focusId);b.putInt("scroll",p.scroll);pages.add(b);}
+        out.putParcelableArrayList("settings-pages",pages);super.onSaveInstanceState(out);
+    }
+    private Runnable pageBuilder(String title){
+        switch(title){
+            case "Settings":return this::settings;case "Profile":return this::profile;case "Appearance":return this::appearance;
+            case "StandBy":return this::standby;case "Favourites":return this::favourites;case "Reorder Favourites":return this::reorder;
+            case "Continue Watching":return this::history;case "Location & Weather":return this::weather;case "Screensaver":return this::screensaver;
+            case "Remotes & Bluetooth":return this::remotes;case "Display & Sound":return this::display;case "Default Home":return this::home;
+            default:return null;
+        }
+    }
+    private boolean restorePages(Bundle state){
+        if(state==null)return false;ArrayList<Bundle> pages=state.getParcelableArrayList("settings-pages");
+        if(pages==null||pages.isEmpty())return false;
+        for(Bundle b:pages){String title=b.getString("title","");Runnable build=pageBuilder(title);if(build==null)break;
+            Page p=new Page(title,build);p.focus=b.getInt("focus");p.focusId=b.getInt("focus-id",View.NO_ID);p.scroll=b.getInt("scroll");stack.add(p);
+        }
+        if(stack.isEmpty())return false;render();return true;
+    }
     private boolean isNight() { return HomeData.get(this).isNight(System.currentTimeMillis()); }
     private void paintPanel() {
         dark = isNight();
+        ControlBackdrop.apply(this,root,dark);
         boolean frosted = "frosted".equals(local().getString("glass", "liquid"));
         GradientDrawable glass = new GradientDrawable(GradientDrawable.Orientation.TL_BR,
                 dark ? (frosted ? new int[] {0xfa363946, 0xfa282b36} : new int[] {0xe84a4e5d, 0xee20232e})
