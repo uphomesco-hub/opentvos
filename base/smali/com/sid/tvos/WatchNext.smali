@@ -709,7 +709,7 @@
 .end method
 
 .method private static query(Landroid/content/Context;)Ljava/util/Map;
-    .locals 12
+    .locals 13
     .annotation system Ldalvik/annotation/Signature;
         value = {
             "(",
@@ -723,6 +723,8 @@
         }
     .end annotation
 
+    move-object v12, p0
+
     new-instance v0, Ljava/util/HashMap;
 
     invoke-direct {v0}, Ljava/util/HashMap;-><init>()V
@@ -732,6 +734,10 @@
     const/16 v2, 0x1a
 
     if-ge v1, v2, :cond_0
+
+    invoke-static {v12, v0}, Lcom/sid/tvos/FeatureBridge;->merge(Landroid/content/Context;Ljava/util/Map;)Ljava/util/Map;
+
+    move-result-object v0
 
     return-object v0
 
@@ -767,6 +773,10 @@
     .catch Ljava/lang/Exception; {:try_start_0 .. :try_end_0} :catch_1
 
     :cond_1
+    invoke-static {v12, v0}, Lcom/sid/tvos/FeatureBridge;->merge(Landroid/content/Context;Ljava/util/Map;)Ljava/util/Map;
+
+    move-result-object v0
+
     return-object v0
 
     :cond_2
@@ -1057,6 +1067,10 @@
 
     invoke-static {p0, v0}, Lcom/sid/tvos/WatchNext;->addChannelRows(Landroid/content/Context;Ljava/util/Map;)V
 
+    invoke-static {v12, v0}, Lcom/sid/tvos/FeatureBridge;->merge(Landroid/content/Context;Ljava/util/Map;)Ljava/util/Map;
+
+    move-result-object v0
+
     return-object v0
 
     :goto_7
@@ -1082,8 +1096,16 @@
     :catch_1
     const/4 p0, 0x0
 
+    invoke-static {v12, p0}, Lcom/sid/tvos/FeatureBridge;->merge(Landroid/content/Context;Ljava/util/Map;)Ljava/util/Map;
+
+    move-result-object p0
+
     return-object p0
 
     :catch_2
+    invoke-static {v12, v0}, Lcom/sid/tvos/FeatureBridge;->merge(Landroid/content/Context;Ljava/util/Map;)Ljava/util/Map;
+
+    move-result-object v0
+
     return-object v0
 .end method

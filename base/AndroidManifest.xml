@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:compileSdkVersion="34" android:compileSdkVersionCodename="14" package="com.sid.tvos" platformBuildVersionCode="34" platformBuildVersionName="14">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:compileSdkVersion="34" android:compileSdkVersionCodename="14" package="com.yash.tvlauncher" platformBuildVersionCode="34" platformBuildVersionName="14">
     <uses-feature android:name="android.software.leanback" android:required="false"/>
     <uses-feature android:name="android.hardware.touchscreen" android:required="false"/>
     <uses-feature android:name="android.hardware.bluetooth" android:required="false"/>
@@ -54,5 +54,8 @@
             </intent-filter>
         </service>
         <activity android:excludeFromRecents="true" android:exported="false" android:name="com.sid.tvos.StandByActivity" android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"/>
+        <activity android:name="com.sid.tvos.HistoryOpenActivity" android:exported="false" android:excludeFromRecents="true" android:theme="@android:style/Theme.Material.NoActionBar"/>
+        <activity android:name="com.sid.tvos.DiscoveryOpenActivity" android:exported="false" android:excludeFromRecents="true" android:theme="@android:style/Theme.Material.NoActionBar"/>
+        <activity android:name="com.sid.tvos.FeatureSettingsActivity" android:exported="false" android:excludeFromRecents="true" android:theme="@android:style/Theme.Material.NoActionBar"/>
     </application>
 </manifest>

@@ -5921,6 +5921,8 @@
 
     invoke-virtual {p1, v0, v1, v3, v2}, Lcom/sid/tvos/MainActivity$SettingsPanel;->action(ILjava/lang/String;Ljava/lang/String;Ljava/lang/Runnable;)V
 
+    invoke-static/range {p0 .. p1}, Lcom/sid/tvos/FeatureBridge;->appendSettings(Landroid/app/Activity;Ljava/lang/Object;)V
+
     return-void
 .end method
 
@@ -9584,82 +9586,8 @@
 .end method
 
 .method private focusTile(I)V
-    .locals 2
-
-    iget-object v0, p0, Lcom/sid/tvos/MainActivity;->adapter:Lcom/sid/tvos/AppAdapter;
-
-    invoke-virtual {v0}, Lcom/sid/tvos/AppAdapter;->getItemCount()I
-
-    move-result v0
-
-    if-nez v0, :cond_0
-
-    return-void
-
-    :cond_0
-    iget-object v0, p0, Lcom/sid/tvos/MainActivity;->adapter:Lcom/sid/tvos/AppAdapter;
-
-    invoke-virtual {v0}, Lcom/sid/tvos/AppAdapter;->getItemCount()I
-
-    move-result v0
-
-    add-int/lit8 v0, v0, -0x1
-
-    invoke-static {p1, v0}, Ljava/lang/Math;->min(II)I
-
-    move-result p1
-
-    const/4 v0, 0x0
-
-    invoke-static {v0, p1}, Ljava/lang/Math;->max(II)I
-
-    move-result p1
-
-    iget-object v0, p0, Lcom/sid/tvos/MainActivity;->grid:Landroidx/recyclerview/widget/RecyclerView;
-
-    invoke-virtual {v0, p1}, Landroidx/recyclerview/widget/RecyclerView;->findViewHolderForAdapterPosition(I)Landroidx/recyclerview/widget/o;
-
-    move-result-object v0
-
-    if-eqz v0, :cond_2
-
-    iget-object v0, v0, Landroidx/recyclerview/widget/o;->itemView:Landroid/view/View;
-
-    sget v1, Lcom/sid/tvos/R$id;->card:I
-
-    invoke-virtual {v0, v1}, Landroid/view/View;->findViewById(I)Landroid/view/View;
-
-    move-result-object v0
-
-    invoke-virtual {v0}, Landroid/view/View;->isFocused()Z
-
-    move-result v1
-
-    if-eqz v1, :cond_1
-
-    invoke-virtual {p0, p1, v0}, Lcom/sid/tvos/MainActivity;->onTileFocused(ILandroid/view/View;)V
-
-    goto :goto_0
-
-    :cond_1
-    invoke-virtual {v0}, Landroid/view/View;->requestFocus()Z
-
-    :goto_0
-    return-void
-
-    :cond_2
-    iget-object v0, p0, Lcom/sid/tvos/MainActivity;->grid:Landroidx/recyclerview/widget/RecyclerView;
-
-    new-instance v1, Lcom/sid/tvos/MainActivity$14;
-
-    invoke-direct {v1, p0, p1}, Lcom/sid/tvos/MainActivity$14;-><init>(Lcom/sid/tvos/MainActivity;I)V
-
-    invoke-virtual {v0, v1}, Landroidx/recyclerview/widget/RecyclerView;->addOnScrollListener(Lr/Q;)V
-
-    iget-object v0, p0, Lcom/sid/tvos/MainActivity;->grid:Landroidx/recyclerview/widget/RecyclerView;
-
-    invoke-virtual {v0, p1}, Landroidx/recyclerview/widget/RecyclerView;->smoothScrollToPosition(I)V
-
+    .locals 0
+    invoke-static {p0, p1}, Lcom/sid/tvos/FeatureBridge;->focusTile(Landroid/app/Activity;I)V
     return-void
 .end method
 
@@ -28937,6 +28865,8 @@
 
     invoke-super {p0, p1}, Landroid/app/Activity;->onCreate(Landroid/os/Bundle;)V
 
+    invoke-static/range {p0 .. p0}, Lcom/sid/tvos/FeatureBridge;->initialize(Landroid/content/Context;)V
+
     sget p1, Lcom/sid/tvos/R$layout;->activity_main:I
 
     invoke-virtual {p0, p1}, Landroid/app/Activity;->setContentView(I)V
@@ -30113,6 +30043,8 @@
     invoke-virtual {v0}, Landroid/widget/PopupWindow;->dismiss()V
 
     :cond_0
+    invoke-static/range {p0 .. p0}, Lcom/sid/tvos/FeatureBridge;->onPause(Landroid/app/Activity;)V
+
     return-void
 .end method
 
@@ -30479,6 +30411,8 @@
     invoke-direct/range {v6 .. v12}, Lt/x;-><init>(Lcom/sid/tvos/MainActivity;Ljava/lang/Object;ZILjava/lang/Object;I)V
 
     invoke-virtual {v0, v1}, Landroid/view/View;->post(Ljava/lang/Runnable;)Z
+
+    invoke-static/range {p0 .. p0}, Lcom/sid/tvos/FeatureBridge;->onResume(Landroid/app/Activity;)V
 
     return-void
 
