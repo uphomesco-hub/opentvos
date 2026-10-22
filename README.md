@@ -1,10 +1,35 @@
 # OpenTVOS
 
-Custom TV home-screen experiments for Android TV and Fire TV.
+A compact Android TV / Fire TV launcher with a cinematic home screen, glass controls and app-specific Continue Watching. Fire OS or Android TV still runs underneath.
 
-The current interface is in **[hybrid/](hybrid/)**: a Free My TV-based home screen with its original dock geometry and cinematic screensaver, app-specific Continue Watching cards, blurred artwork backgrounds, compact tvOS-style controls, automatic Light/Dark appearance, Delhi weather and estimated Indian AQI, and analog-clock/calendar StandBy.
+**[Download OpenTVOS v1.2.1](https://github.com/uphomesco-hub/opentvos/releases/tag/v1.2.1)** · [Build and setup](hybrid/README.md) · [Device verification](hybrid/VERIFICATION.md)
 
-See the [hybrid build instructions](hybrid/README.md) and [device verification](hybrid/VERIFICATION.md). Configuration, API keys, signing keys and APK build outputs stay local and are excluded from Git.
+The maintained app is in **[hybrid/](hybrid/)**. It preserves Free My TV's dock and background engine and adds:
+
+- A centred Continue Watching carousel for the selected favourite app, using playback metadata shared on this TV.
+- Compact tvOS-style Control Centre, profile avatars/photo picker, remote navigation and native TV settings shortcuts.
+- Light, Dark and sunrise/sunset Automatic appearance, including glass surfaces.
+- Delhi weather, estimated Indian-scale AQI and local time; location is configurable.
+- StandBy with an analog clock, digital time and calendar, plus four other layouts.
+- The original movie/photo screensaver engine.
+
+**No account or API key is needed for the main launcher, local Continue Watching, weather/AQI, controls or StandBy.** The downloadable APK contains no private catalogue keys. Optional TMDB movie artwork requires your own configuration when building; it is not bundled into this public release. Continue Watching is shared device history, not a complete Netflix/Prime account history; empty apps show the clock/weather fallback.
+
+## Screenshots
+
+Actual Fire TV captures, not mockups. Screenshots below show this release's controls, themes and default StandBy layout.
+
+![Dark Control Centre](hybrid/docs/screenshots/controls-dark.png)
+![Light Control Centre](hybrid/docs/screenshots/controls-light.png)
+![Analog clock, digital time and calendar in StandBy](hybrid/docs/screenshots/standby.png)
+
+## Install
+
+Android 9 / API 28 or newer. Sideload the APK, then launch OpenTVOS from Apps. Installation alone does not assign the Home button. Fire TV may need a compatible Home-button helper and device-side ADB approval; available methods depend on Fire OS. Enable notification access for OpenTVOS to collect shared Continue Watching metadata. Existing streaming subscriptions/logins remain in their apps.
+
+The application ID is `io.freemytv`. An update over another Free My TV build requires the same signing key. Back up your APK and preferences before changing installations; this repository does not install or remove packages automatically.
+
+Source code, documentation and screenshots are public. Signing keys, personal configuration, API credentials and private playback evidence are excluded. Release APKs are attached to GitHub Releases.
 
 ## Earlier tvOS-based experiment
 

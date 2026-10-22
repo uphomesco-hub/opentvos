@@ -20,3 +20,5 @@ local.properties
 *.apk
 **/__pycache__/
 *.pyc
+
+/hybrid/dist/
