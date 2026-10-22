@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="cw_bg_modes">
+        <item>Show Artwork</item>
+        <item>App Background</item>
+        <item>Solid Colour</item>
+        <item>Gradient</item>
+        <item>Picture</item>
+    </string-array>
+    <string-array name="cw_bg_styles">
+        <item>Top to Bottom</item>
+        <item>Diagonal</item>
+        <item>Glow</item>
+        <item>Aurora</item>
+        <item>Horizon</item>
+        <item>Radial</item>
+        <item>Two Corners</item>
+        <item>Mesh</item>
+        <item>Vignette</item>
+        <item>Waves</item>
+    </string-array>
+    <string-array name="cw_colours">
+        <item>Black</item>
+        <item>Charcoal</item>
+        <item>Graphite</item>
+        <item>Silver</item>
+        <item>White</item>
+        <item>Red</item>
+        <item>Maroon</item>
+        <item>Orange</item>
+        <item>Amber</item>
+        <item>Yellow</item>
+        <item>Lime</item>
+        <item>Green</item>
+        <item>Emerald</item>
+        <item>Teal</item>
+        <item>Cyan</item>
+        <item>Blue</item>
+        <item>Navy</item>
+        <item>Indigo</item>
+        <item>Purple</item>
+        <item>Magenta</item>
+        <item>Pink</item>
+        <item>Rose</item>
+        <item>Brown</item>
+        <item>Gold</item>
+    </string-array>
+    <string-array name="cw_presets">
+        <item>Red Night</item>
+        <item>Green Night</item>
+        <item>Sunset</item>
+        <item>Ocean</item>
+        <item>Northern Lights</item>
+        <item>Midnight</item>
+        <item>Peach</item>
+        <item>Ember</item>
+        <item>Galaxy</item>
+        <item>Lagoon</item>
+        <item>Neon</item>
+        <item>Espresso</item>
+        <item>Forest</item>
+        <item>Gold</item>
+    </string-array>
+    <string-array name="default_folders">
+        <item>Utilities|com.cybercat.adbappcontrol.tv,nextapp.fx,org.localsend.localsend_app,com.klevico.monet,com.xiaomi.mitv.mediaexplorer,com.xiaomi.mitv.smartshare</item>
+    </string-array>
+    <string-array name="dock_apps">
+        <item>com.google.android.youtube.tv</item>
+        <item>com.amazon.amazonvideo.livingroom</item>
+        <item>com.nuvio.tv</item>
+        <item>com.google.android.youtube.tvmusic</item>
+        <item>com.android.vending</item>
+    </string-array>
+    <string-array name="gap_steps">
+        <item>Compact</item>
+        <item>Normal</item>
+        <item>Roomy</item>
+    </string-array>
+    <string-array name="hidden_apps">
+        <item>com.android.tv</item>
+        <item>com.mitv.gallery</item>
+    </string-array>
+    <string-array name="position_steps">
+        <item>Higher</item>
+        <item>Centred</item>
+        <item>Lower</item>
+    </string-array>
+    <string-array name="row_icon_steps">
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+    </string-array>
+    <string-array name="size_steps">
+        <item>Small</item>
+        <item>Medium</item>
+        <item>Large</item>
+    </string-array>
+    <string-array name="standby_colours">
+        <item>Yellow</item>
+        <item>Mint</item>
+        <item>Blue</item>
+        <item>Pink</item>
+        <item>White</item>
+    </string-array>
+    <string-array name="standby_layouts">
+        <item>Two Widgets</item>
+        <item>Analogue</item>
+        <item>Float</item>
+        <item>Digital</item>
+    </string-array>
+    <string-array name="standby_widgets">
+        <item>Analogue Clock</item>
+        <item>Modern Clock</item>
+        <item>Digital Clock</item>
+        <item>Date</item>
+        <item>Calendar</item>
+        <item>Weather</item>
+    </string-array>
+</resources>

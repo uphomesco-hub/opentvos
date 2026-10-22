@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_info">App-Info</string>
+    <string name="app_name">tvOS Launcher</string>
+    <string name="apps">Apps</string>
+    <string name="bluetooth">Bluetooth</string>
+    <string name="cant_open">%1$s lässt sich nicht öffnen</string>
+    <string name="connected">Verbunden</string>
+    <string name="delete_folder">Ordner löschen</string>
+    <string name="ethernet">LAN</string>
+    <string name="folder_name">Ordnername</string>
+    <string name="inputs">Quellen</string>
+    <string name="live_tv">Live TV</string>
+    <string name="move_to_folder">In „%1$s“ bewegen</string>
+    <string name="new_folder">Neuer Ordner …</string>
+    <string name="no_inputs">Keine Quellen gefunden</string>
+    <string name="not_available">Auf diesem TV nicht verfügbar</string>
+    <string name="not_connected">Kein Gerät</string>
+    <string name="offline">Offline</string>
+    <string name="remove_from_folder">Aus „%1$s“ entfernen</string>
+    <string name="rename_folder">Ordner umbenennen</string>
+    <string name="settings">Einstellungen</string>
+    <string name="standby">Standby</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+    <string name="wifi">WLAN</string>
+</resources>

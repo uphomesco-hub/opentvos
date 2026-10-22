@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:orientation="vertical" android:id="@id/ccPanel" android:padding="6.0dp" android:clipChildren="false" android:clipToPadding="false" android:layout_width="match_parent" android:layout_height="wrap_content"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <LinearLayout android:gravity="center_vertical" android:orientation="horizontal" android:id="@id/ccHeader" android:clipChildren="false" android:layout_width="match_parent" android:layout_height="40.0dp">
+        <TextClock android:textSize="15.0sp" android:textColor="#ffffffff" android:id="@id/ccTime" android:layout_width="0.0dp" android:layout_height="wrap_content" android:includeFontPadding="false" android:layout_weight="1.0" android:fontFamily="@font/inter_semibold" android:layout_marginStart="6.0dp" android:format12Hour="h:mm a" android:format24Hour="H:mm" />
+        <FrameLayout android:background="@drawable/cc_badge" android:layout_width="30.0dp" android:layout_height="30.0dp">
+            <ImageView android:layout_gravity="center" android:layout_width="18.0dp" android:layout_height="18.0dp" android:src="@drawable/ic_controls" android:contentDescription="@null" />
+        </FrameLayout>
+        <ImageView android:id="@id/ccAvatar" android:background="@drawable/cc_avatar_ring" android:padding="2.0dp" android:focusable="true" android:clickable="true" android:layout_width="34.0dp" android:layout_height="34.0dp" android:contentDescription="@string/profile_picture" android:layout_marginStart="8.0dp" />
+    </LinearLayout>
+    <LinearLayout android:orientation="horizontal" android:id="@id/ccGridTop" android:clipChildren="false" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12.0dp">
+        <LinearLayout android:gravity="center" android:orientation="vertical" android:id="@id/ccSleep" android:background="@drawable/cc_glass_tile" android:focusable="true" android:clickable="true" android:layout_width="0.0dp" android:layout_height="124.0dp" android:layout_weight="1.0">
+            <ImageView android:duplicateParentState="true" android:layout_width="44.0dp" android:layout_height="44.0dp" android:src="@drawable/ic_standby" android:tint="@drawable/pill_text" android:contentDescription="@null" />
+            <TextView android:textSize="12.0sp" android:textColor="@drawable/pill_text" android:duplicateParentState="true" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="10.0dp" android:text="@string/cc_standby" android:fontFamily="@font/inter_semibold" />
+        </LinearLayout>
+        <LinearLayout android:orientation="vertical" android:clipChildren="false" android:layout_width="0.0dp" android:layout_height="124.0dp" android:layout_weight="1.0" android:layout_marginStart="8.0dp">
+            <include android:id="@id/ccWifi" android:layout_width="match_parent" android:layout_height="0.0dp" android:layout_weight="1.0" layout="@layout/item_cc_pill" />
+            <include android:id="@id/ccBluetooth" android:layout_width="match_parent" android:layout_height="0.0dp" android:layout_marginTop="8.0dp" android:layout_weight="1.0" layout="@layout/item_cc_pill" />
+        </LinearLayout>
+    </LinearLayout>
+    <LinearLayout android:orientation="horizontal" android:id="@id/ccGridMid" android:clipChildren="false" android:layout_width="match_parent" android:layout_height="58.0dp" android:layout_marginTop="8.0dp">
+        <include android:id="@id/ccInputs" android:layout_width="0.0dp" android:layout_height="match_parent" android:layout_weight="1.0" layout="@layout/item_cc_pill" />
+        <include android:id="@id/ccSettings" android:layout_width="0.0dp" android:layout_height="match_parent" android:layout_weight="1.0" android:layout_marginStart="8.0dp" layout="@layout/item_cc_pill" />
+    </LinearLayout>
+    <LinearLayout android:orientation="horizontal" android:id="@id/ccRound" android:clipChildren="false" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10.0dp" />
+</LinearLayout>

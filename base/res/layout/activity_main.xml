@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout android:id="@id/root" android:background="#ff000000" android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <FrameLayout android:id="@id/shelfGroup" android:layout_width="match_parent" android:layout_height="match_parent" android:alpha="0.0">
+        <ImageView android:id="@id/shelf" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:importantForAccessibility="no" />
+        <ImageView android:id="@id/shelf2" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:alpha="0.0" android:importantForAccessibility="no" />
+    </FrameLayout>
+    <View android:id="@id/shelfScrim" android:background="@drawable/shelf_scrim" android:visibility="gone" android:layout_width="match_parent" android:layout_height="match_parent" android:alpha="0.0" />
+    <LinearLayout android:orientation="horizontal" android:id="@id/cwInfo" android:visibility="gone" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="27.0dp" android:baselineAligned="true" android:alpha="0.0" android:layout_marginStart="55.0dp" android:layout_marginEnd="55.0dp">
+        <TextView android:textSize="19.0sp" android:textColor="#e6ffffff" android:id="@id/cwKicker" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/cw_title" android:includeFontPadding="false" android:fontFamily="@font/inter_semibold" android:letterSpacing="-0.01" />
+        <TextView android:textSize="15.0sp" android:textColor="#b3ffffff" android:ellipsize="end" android:id="@id/cwTitle" android:visibility="gone" android:layout_width="0.0dp" android:layout_height="wrap_content" android:singleLine="true" android:includeFontPadding="false" android:shadowColor="#b3000000" android:shadowDy="1.0" android:shadowRadius="14.0" android:layout_weight="1.0" android:fontFamily="@font/inter_medium" android:layout_marginStart="16.0dp" />
+        <TextView android:id="@id/cwSubtitle" android:visibility="gone" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+        <FrameLayout android:id="@id/cwTrack" android:visibility="gone" android:layout_width="0.0dp" android:layout_height="0.0dp">
+            <View android:id="@id/cwProgress" android:layout_width="0.0dp" android:layout_height="match_parent" />
+        </FrameLayout>
+    </LinearLayout>
+    <HorizontalScrollView android:layout_gravity="bottom" android:id="@id/cwScroll" android:scrollbars="none" android:clipChildren="false" android:clipToPadding="false" android:descendantFocusability="afterDescendants" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="178.0dp" android:overScrollMode="never" android:paddingStart="41.0dp" android:paddingEnd="41.0dp">
+        <LinearLayout android:orientation="horizontal" android:id="@id/cwRow" android:padding="14.0dp" android:visibility="gone" android:clipChildren="false" android:clipToPadding="false" android:layout_width="wrap_content" android:layout_height="wrap_content" android:alpha="0.0" />
+    </HorizontalScrollView>
+    <FrameLayout android:id="@id/topBar" android:paddingTop="24.0dp" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingStart="45.0dp" android:paddingEnd="45.0dp">
+        <LinearLayout android:gravity="center_vertical" android:layout_gravity="start|top" android:orientation="horizontal" android:id="@id/weatherPill" android:visibility="gone" android:layout_width="wrap_content" android:layout_height="40.0dp" android:paddingStart="14.0dp" android:paddingEnd="16.0dp">
+            <ImageView android:id="@id/weatherPillIcon" android:layout_width="20.0dp" android:layout_height="20.0dp" android:contentDescription="@null" />
+            <TextView android:textSize="15.0sp" android:textColor="#ffffffff" android:ellipsize="end" android:id="@id/weatherPillText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxWidth="220.0dp" android:singleLine="true" android:includeFontPadding="false" android:fontFamily="@font/inter_semibold" android:layout_marginStart="8.0dp" />
+        </LinearLayout>
+        <FrameLayout android:layout_gravity="end" android:id="@id/statusGlass" android:layout_width="wrap_content" android:layout_height="wrap_content">
+            <LinearLayout android:gravity="center_vertical" android:orientation="horizontal" android:id="@id/statusPill" android:clipChildren="false" android:layout_width="wrap_content" android:layout_height="48.0dp" android:paddingStart="4.0dp" android:paddingEnd="4.0dp">
+                <TextClock android:textSize="15.0sp" android:textColor="#ffffffff" android:id="@id/clock" android:layout_width="wrap_content" android:layout_height="wrap_content" android:includeFontPadding="false" android:fontFamily="@font/inter_semibold" android:layout_marginStart="12.0dp" android:layout_marginEnd="6.0dp" android:format12Hour="h:mm a" android:format24Hour="h:mm a" />
+                <ImageView android:id="@id/weatherIcon" android:visibility="gone" android:layout_width="18.0dp" android:layout_height="18.0dp" android:contentDescription="@null" android:layout_marginStart="10.0dp" />
+                <TextView android:textSize="15.0sp" android:textColor="#ffffffff" android:ellipsize="end" android:id="@id/weatherText" android:visibility="gone" android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxWidth="160.0dp" android:singleLine="true" android:includeFontPadding="false" android:fontFamily="@font/inter_medium" android:layout_marginStart="5.0dp" android:layout_marginEnd="6.0dp" />
+                <FrameLayout android:id="@id/btnWifi" android:contentDescription="@string/wifi" style="@style/GlassButton">
+                    <ImageView android:src="@drawable/ic_wifi" style="@style/GlassButtonIcon" />
+                </FrameLayout>
+                <FrameLayout android:id="@id/btnBluetooth" android:contentDescription="@string/bluetooth" style="@style/GlassButton">
+                    <ImageView android:src="@drawable/ic_bluetooth" style="@style/GlassButtonIcon" />
+                </FrameLayout>
+                <FrameLayout android:id="@id/btnAssistant" android:contentDescription="@string/assistant" style="@style/GlassButton">
+                    <ImageView android:src="@drawable/ic_assistant" style="@style/GlassButtonIcon" />
+                </FrameLayout>
+                <FrameLayout android:id="@id/btnSettings" android:contentDescription="@string/settings" style="@style/GlassButton">
+                    <ImageView android:src="@drawable/ic_settings" style="@style/GlassButtonIcon" />
+                </FrameLayout>
+                <ImageView android:id="@id/statusAvatar" android:visibility="gone" android:layout_width="30.0dp" android:layout_height="30.0dp" android:contentDescription="@string/profile" android:layout_marginStart="2.0dp" />
+            </LinearLayout>
+        </FrameLayout>
+    </FrameLayout>
+    <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent" android:layout_marginTop="0.0dp" android:paddingStart="45.0dp" android:paddingEnd="45.0dp">
+        <com.sid.tvos.HomeGrid android:id="@id/grid" android:paddingTop="10.0dp" android:paddingBottom="48.0dp" android:scrollbars="none" android:clipChildren="false" android:clipToPadding="false" android:descendantFocusability="afterDescendants" android:layout_width="match_parent" android:layout_height="match_parent" android:overScrollMode="never" />
+    </FrameLayout>
+    <com.sid.tvos.GlassView android:id="@id/glass" android:layout_width="10.0dp" android:layout_height="10.0dp" android:alpha="0.0" android:importantForAccessibility="no" />
+    <FrameLayout android:id="@id/folderOverlay" android:visibility="gone" android:clickable="true" android:layout_width="match_parent" android:layout_height="match_parent">
+        <ImageView android:id="@id/folderBackdrop" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:importantForAccessibility="no" />
+        <TextView android:textSize="17.0sp" android:textColor="#ff1c1c1e" android:gravity="center" android:layout_gravity="center|top" android:id="@id/folderName" android:background="@drawable/pill_light" android:layout_width="wrap_content" android:layout_height="44.0dp" android:layout_marginTop="30.0dp" android:fontFamily="@font/inter_semibold" android:paddingStart="22.0dp" android:paddingEnd="22.0dp" />
+        <FrameLayout android:id="@id/folderPanel" android:background="@drawable/glass_panel_light" android:paddingTop="14.0dp" android:paddingBottom="4.0dp" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="92.0dp" android:paddingStart="12.0dp" android:paddingEnd="12.0dp" android:layout_marginStart="60.0dp" android:layout_marginEnd="60.0dp">
+            <androidx.recyclerview.widget.RecyclerView android:id="@id/folderGridView" android:scrollbars="none" android:clipChildren="false" android:clipToPadding="false" android:layout_width="match_parent" android:layout_height="wrap_content" android:overScrollMode="never" />
+        </FrameLayout>
+        <com.sid.tvos.GlassView android:id="@id/folderGlass" android:layout_width="10.0dp" android:layout_height="10.0dp" android:alpha="0.0" android:importantForAccessibility="no" />
+    </FrameLayout>
+    <LinearLayout android:gravity="center_horizontal" android:layout_gravity="center|top" android:orientation="vertical" android:id="@id/fullHint" android:layout_width="wrap_content" android:layout_height="wrap_content" android:alpha="0.0">
+        <ImageView android:layout_width="14.0dp" android:layout_height="8.0dp" android:src="@drawable/ic_chevron_up" android:contentDescription="@null" />
+        <TextView android:textSize="10.0sp" android:textColor="#b3ffffff" android:visibility="gone" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2.0dp" android:text="@string/swipe_full_screen" android:shadowColor="#99000000" android:shadowRadius="6.0" android:textAllCaps="true" android:fontFamily="@font/inter_semibold" android:letterSpacing="0.08" />
+    </LinearLayout>
+    <View android:id="@id/fullCatcher" android:focusable="true" android:layout_width="1.0dp" android:layout_height="1.0dp" android:importantForAccessibility="no" />
+    <FrameLayout android:id="@id/recentsOverlay" android:visibility="gone" android:clickable="true" android:layout_width="match_parent" android:layout_height="match_parent">
+        <ImageView android:id="@id/recentsBackdrop" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:importantForAccessibility="no" />
+        <TextView android:textSize="20.0sp" android:textColor="#e6ffffff" android:id="@id/recentsTitle" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="34.0dp" android:text="@string/recent_apps" android:fontFamily="@font/inter_semibold" android:layout_marginStart="55.0dp" />
+        <LinearLayout android:gravity="center_vertical" android:layout_gravity="end|top" android:orientation="horizontal" android:id="@id/recentsRam" android:background="@drawable/glass_pill" android:layout_width="wrap_content" android:layout_height="40.0dp" android:layout_marginTop="28.0dp" android:paddingStart="16.0dp" android:paddingEnd="16.0dp" android:layout_marginEnd="55.0dp">
+            <TextView android:textSize="13.0sp" android:textColor="#ffffffff" android:id="@id/recentsRamText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/inter_medium" />
+            <FrameLayout android:id="@id/recentsRamTrack" android:background="@drawable/progress_track" android:layout_width="90.0dp" android:layout_height="6.0dp" android:layout_marginStart="12.0dp">
+                <View android:id="@id/recentsRamFill" android:background="@drawable/progress_fill" android:layout_width="0.0dp" android:layout_height="match_parent" />
+            </FrameLayout>
+        </LinearLayout>
+        <TextView android:textSize="16.0sp" android:textColor="#b3ffffff" android:layout_gravity="center" android:id="@id/recentsEmpty" android:visibility="gone" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/no_recent_apps" android:fontFamily="@font/inter_medium" />
+        <HorizontalScrollView android:layout_gravity="center_vertical" android:id="@id/recentsScroll" android:scrollbars="none" android:clipChildren="false" android:clipToPadding="false" android:layout_width="match_parent" android:layout_height="wrap_content" android:overScrollMode="never">
+            <LinearLayout android:gravity="center_vertical" android:orientation="horizontal" android:id="@id/recentsRow" android:clipChildren="false" android:clipToPadding="false" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+        </HorizontalScrollView>
+        <TextView android:textSize="13.0sp" android:textColor="#99ffffff" android:layout_gravity="center|bottom" android:id="@id/recentsHint" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="40.0dp" android:text="@string/close_hint" android:fontFamily="@font/inter_medium" />
+    </FrameLayout>
+    <ImageView android:id="@id/dim" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:alpha="0.0" android:importantForAccessibility="no" />
+    <ImageView android:id="@id/launchCard" android:visibility="gone" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:importantForAccessibility="no" />
+</FrameLayout>

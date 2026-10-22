@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector android:enterFadeDuration="180" android:exitFadeDuration="180"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <shape android:shape="oval">
+            <solid android:color="#ffffffff" />
+        </shape>
+    </item>
+    <item android:state_selected="true">
+        <shape android:shape="oval">
+            <solid android:color="#e6ffffff" />
+        </shape>
+    </item>
+    <item>
+        <layer-list>
+            <item>
+                <shape android:shape="oval">
+                    <gradient android:startColor="#8c48484c" android:endColor="#99242426" android:angle="270.0" />
+                </shape>
+            </item>
+            <item>
+                <shape android:shape="oval">
+                    <stroke android:width="1.0dp" android:color="#38ffffff" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+</selector>

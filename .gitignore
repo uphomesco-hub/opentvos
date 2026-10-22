@@ -1,0 +1,16 @@
+/tools/*.jar
+/tools/*.class
+/tools/dex-api.txt
+/out/
+/*.apk
+*.keystore
+*.jks
+*.p12
+*.pem
+config.properties
+local.properties
+.env
+.env.*
+.DS_Store
+/base/build/
+/base/dist/
