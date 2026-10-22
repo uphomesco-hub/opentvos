@@ -18,6 +18,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.EditText;
+import android.widget.HorizontalScrollView;
+import android.widget.ImageView;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -37,12 +39,13 @@ public class SettingsActivity extends Activity {
     private final List<Page> stack = new ArrayList<>();
     private boolean dark, closing;
     private DreamView preview;
-    private int rowCount;
+    private int rowCount, renderGeneration;
 
     private static final class Page {
         final String title;
         final Runnable build;
         int focus, scroll;
+        int focusId=View.NO_ID;
         Page(String title, Runnable build) { this.title = title; this.build = build; }
     }
     private SharedPreferences local() { return getSharedPreferences("hybrid_ui", MODE_PRIVATE); }
@@ -56,12 +59,13 @@ public class SettingsActivity extends Activity {
         Ui.init(this);
         dark = isNight();
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getWindow().setWindowAnimations(0);overridePendingTransition(0,0);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
         root = new FrameLayout(this);
         root.setBackgroundColor(0x26000000);
-        root.setOnClickListener(v -> close());
+        root.setOnClickListener(v -> close());root.setFocusable(false);root.setClipChildren(false);
         panel = new FrameLayout(this);
-        panel.setClickable(true);
+        panel.setClickable(true);panel.setFocusable(false);panel.setClipToOutline(true);
         panel.setElevation(dp(20));
         FrameLayout.LayoutParams pp = new FrameLayout.LayoutParams(Math.min(dp(340), (int)(getResources().getDisplayMetrics().widthPixels * .37f)), -1, Gravity.RIGHT);
         pp.setMargins(dp(22), dp(22), dp(22), dp(22));
@@ -117,7 +121,7 @@ public class SettingsActivity extends Activity {
     private TextView text(String value, int size, boolean bold) {
         TextView t = new TextView(this);
         t.setText(value); t.setTextSize(size); t.setTextColor(ink());
-        t.setTypeface(Typeface.create("sans-serif", bold ? Typeface.BOLD : Typeface.NORMAL));
+        t.setTypeface(bold ? Ui.semibold : Ui.regular);
         t.setIncludeFontPadding(false);
         return t;
     }
@@ -130,6 +134,7 @@ public class SettingsActivity extends Activity {
         if (stack.isEmpty()) return;
         Page p = stack.get(stack.size() - 1);
         View focus = rows.findFocus();
+        if(focus!=null && focus.getId()!=View.NO_ID)p.focusId=focus.getId();
         while (focus != null && focus.getParent() != rows) focus = focus.getParent() instanceof View ? (View)focus.getParent() : null;
         if (focus != null) p.focus = rows.indexOfChild(focus);
         p.scroll = scroll.getScrollY();
@@ -141,18 +146,23 @@ public class SettingsActivity extends Activity {
         paintPanel(); rows.removeAllViews(); rowCount = 0;
         Page p = stack.get(stack.size() - 1); title.setText(p.title); p.build.run();
         rows.setAlpha(.5f); rows.animate().alpha(1).setDuration(130).start();
+        final int generation=++renderGeneration;
         scroll.post(() -> {
-            int wanted = Math.min(p.focus, rows.getChildCount() - 1);
-            View first = null;
-            for (int n = 0; n < rows.getChildCount(); n++) {
-                View child = rows.getChildAt(n);
-                if (child.isFocusable()) { if (first == null) first = child; if (n == wanted) first = child; }
-                if (n == wanted && child.isFocusable()) break;
+            if(generation!=renderGeneration || isFinishing())return;
+            View wanted=rows.findViewById(p.focusId);
+            if(wanted==null || !wanted.isFocusable()) {
+                int index=Math.min(p.focus,rows.getChildCount()-1);
+                View row=index>=0?rows.getChildAt(index):null;
+                ArrayList<View> choices=new ArrayList<>();
+                if(row!=null)row.addFocusables(choices,View.FOCUS_FORWARD);
+                if(choices.isEmpty())rows.addFocusables(choices,View.FOCUS_FORWARD);
+                wanted=choices.isEmpty()?null:choices.get(0);
             }
-            if (first != null) first.requestFocus();
-            scroll.scrollTo(0, p.scroll);
+            scroll.scrollTo(0,p.scroll);
+            if(wanted!=null)wanted.requestFocus();
         });
     }
+
     private void refresh() { savePosition(); render(); }
     private void note(String value) {
         TextView t = text(value, 12, false); t.setTextColor(muted());
@@ -166,7 +176,7 @@ public class SettingsActivity extends Activity {
     private void row(String symbol, String label, String value, Runnable action) {
         LinearLayout line = new LinearLayout(this); line.setGravity(Gravity.CENTER_VERTICAL);
         line.setPadding(dp(14), dp(13), dp(14), dp(13)); line.setMinimumHeight(dp(54));
-        line.setFocusable(true); line.setClickable(true);
+        line.setId(10000+rowCount);line.setFocusable(true); line.setClickable(true);
         line.setContentDescription(label + (value.isEmpty() ? "" : ", " + value));
         if (!symbol.isEmpty()) {
             TextView icon = text(symbol, 22, false); icon.setGravity(Gravity.CENTER);
@@ -176,7 +186,7 @@ public class SettingsActivity extends Activity {
         name.setSingleLine(true); name.setEllipsize(TextUtils.TruncateAt.END);
         line.addView(name, new LinearLayout.LayoutParams(0, -2, 1));
         TextView tail = text(value.isEmpty() ? "›" : value, 13, false);
-        tail.setMaxLines(2); tail.setGravity(Gravity.RIGHT); tail.setTextColor(muted());
+        tail.setSingleLine(true);tail.setEllipsize(TextUtils.TruncateAt.END);tail.setMaxWidth(dp(130)); tail.setGravity(Gravity.RIGHT); tail.setTextColor(muted());
         line.addView(tail, new LinearLayout.LayoutParams(-2, -2));
         line.setBackground(shape(dark ? 0x16ffffff : 0x28ffffff, 0, 16));
         line.setOnFocusChangeListener((v, focused) -> {
@@ -210,7 +220,7 @@ public class SettingsActivity extends Activity {
         row("▣", "StandBy appearance", "", () -> push("StandBy", this::standby));
     }
     private void settings() {
-        row("●", "Profile", local().getString("profile_name", "Yash"), () -> push("Profile", this::profile));
+        row("●", "Profile", Profile.name(this), () -> push("Profile", this::profile));
         row("◐", "Appearance", mode(), () -> push("Appearance", this::appearance));
         row("▣", "StandBy", "", () -> push("StandBy", this::standby));
         section("Home screen");
@@ -227,10 +237,55 @@ public class SettingsActivity extends Activity {
         row("⚙", "TV Settings", "", this::tvSettings);
     }
     private void profile() {
-        row("●", "Display name", local().getString("profile_name", "Yash"), () -> edit("Display name", local().getString("profile_name", "Yash"), v -> {
-            if (v.isEmpty()) return false; local().edit().putString("profile_name", v).apply(); refresh(); return true;
+        section("Avatars");
+        // tvOS avatar strip: 64dp circles, selected ring and a focused lift.
+        HorizontalScrollView strip=new HorizontalScrollView(this);strip.setHorizontalScrollBarEnabled(false);
+        strip.setClipChildren(false);strip.setClipToPadding(false);strip.setPadding(dp(8),dp(8),dp(8),dp(8));
+        strip.setFocusable(false);strip.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
+        LinearLayout avatars=new LinearLayout(this);avatars.setClipChildren(false);avatars.setClipToPadding(false);
+        String selected=Profile.choice(this);
+        for(int i=0;i<Profile.EMOJI.length;i++) {
+            final int index=i;boolean chosen=selected.equals("emoji:"+i);
+            FrameLayout hit=new FrameLayout(this);hit.setId(20000+i);hit.setFocusable(true);hit.setClickable(true);
+            hit.setContentDescription("Avatar "+(i+1)+(chosen?", selected":""));
+            ImageView image=new ImageView(this);image.setImageBitmap(Profile.emojiAvatar(i,dp(64)));
+            hit.addView(image,new FrameLayout.LayoutParams(dp(64),dp(64),Gravity.CENTER));
+            GradientDrawable ring=new GradientDrawable();ring.setShape(GradientDrawable.OVAL);ring.setColor(Color.TRANSPARENT);
+            ring.setStroke(dp(3),chosen?0xffffffff:0x00ffffff);hit.setForeground(ring);
+            hit.setOnFocusChangeListener((v,focused)->{
+                ring.setStroke(dp(3),focused||chosen?0xffffffff:0x00ffffff);
+                v.animate().scaleX(focused?1.08f:1).scaleY(focused?1.08f:1).setDuration(150).start();
+                if(focused)strip.post(()->hit.requestRectangleOnScreen(new android.graphics.Rect(0,0,hit.getWidth(),hit.getHeight()),false));
+            });
+            hit.setOnClickListener(v->{Profile.setEmoji(this,index);refresh();});
+            hit.setOnKeyListener((v,key,event)->key==KeyEvent.KEYCODE_DPAD_LEFT&&index==0 || key==KeyEvent.KEYCODE_DPAD_RIGHT&&index==Profile.EMOJI.length-1);
+            avatars.addView(hit,new LinearLayout.LayoutParams(dp(78),dp(78)));
+        }
+        strip.addView(avatars);rows.addView(strip,new LinearLayout.LayoutParams(-1,dp(94)));
+        section("Your photo");
+        row("▣","Choose photo","photo".equals(selected)?"Selected":"",this::chooseProfilePhoto);
+        section("Profile");
+        row("●","Edit name",Profile.name(this),()->edit("Display name",Profile.name(this),v->{
+            if(v.isEmpty()||v.length()>40)return false;Profile.setName(this,v);refresh();return true;
         }));
-        note("This name appears in Control Centre. Your streaming profiles and accounts remain managed inside each app.");
+        note("This profile customises your home screen. Streaming profiles stay inside each app.");
+    }
+    private void chooseProfilePhoto() {
+        Intent choose=new Intent(Intent.ACTION_OPEN_DOCUMENT).setType("image/*").addCategory(Intent.CATEGORY_OPENABLE);
+        try {startActivityForResult(choose,42);}
+        catch(Exception unavailable){
+            try{startActivityForResult(new Intent(Intent.ACTION_GET_CONTENT).setType("image/*"),42);}
+            catch(Exception ignored){Toast.makeText(this,"No photo picker is available on this TV. Choose an avatar above.",Toast.LENGTH_LONG).show();}
+        }
+    }
+    @Override protected void onActivityResult(int request,int result,Intent data){
+        super.onActivityResult(request,result,data);
+        if(request==42&&result==RESULT_OK&&data!=null&&data.getData()!=null){
+            new Thread(()->{boolean saved=Profile.setPhoto(this,data.getData());runOnUiThread(()->{
+                if(isFinishing()||isDestroyed())return;
+                if(saved)refresh();else Toast.makeText(this,"This photo could not be opened",Toast.LENGTH_SHORT).show();
+            });},"profile-photo").start();
+        }
     }
     private void favourites() {
         List<String> selected = new ArrayList<>(HomeApps.shelfPackages(this));
@@ -363,7 +418,7 @@ public class SettingsActivity extends Activity {
     private void closePreview() {
         if (preview == null) return; preview.stop(); preview = null; setContentView(root); root.setVisibility(View.VISIBLE); refresh();
     }
-    @Override protected void onPause() { if (preview != null) closePreview(); super.onPause(); }
+    @Override protected void onPause() { savePosition();if (preview != null) closePreview(); super.onPause(); }
     @Override protected void onResume() { super.onResume(); if (rows != null && preview == null && !stack.isEmpty()) refresh(); }
     private void back() { if (stack.size() > 1) { stack.remove(stack.size() - 1); render(); } else close(); }
     private void close() { if (closing) return; closing = true; panel.animate().translationX(dp(55)).alpha(0).setDuration(150).withEndAction(this::finish).start(); }
@@ -371,7 +426,8 @@ public class SettingsActivity extends Activity {
     @Override public boolean dispatchKeyEvent(KeyEvent event) {
         int key = event.getKeyCode();
         if (preview != null && (key == KeyEvent.KEYCODE_BACK || key == KeyEvent.KEYCODE_DPAD_UP || key == KeyEvent.KEYCODE_DPAD_DOWN || key == KeyEvent.KEYCODE_DPAD_LEFT || key == KeyEvent.KEYCODE_DPAD_RIGHT || key == KeyEvent.KEYCODE_DPAD_CENTER || key == KeyEvent.KEYCODE_ENTER)) { if (event.getAction() == KeyEvent.ACTION_UP) closePreview(); return true; }
-        if (key == KeyEvent.KEYCODE_MENU || key == KeyEvent.KEYCODE_DPAD_LEFT) { if (event.getAction() == KeyEvent.ACTION_UP) back(); return true; }
+        View focused=getCurrentFocus();boolean inAvatars=focused!=null&&focused.getId()>=20000&&focused.getId()<20010;
+        if (key == KeyEvent.KEYCODE_MENU || key == KeyEvent.KEYCODE_DPAD_LEFT&&!inAvatars) { if (event.getAction() == KeyEvent.ACTION_UP) back(); return true; }
         return super.dispatchKeyEvent(event);
     }
 }

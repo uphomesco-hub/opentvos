@@ -17,7 +17,7 @@ import java.util.Calendar;
 public final class ControlCentreActivity extends Activity {
     private FrameLayout root;
     private LinearLayout panel;
-    private boolean dark, closing;
+    private boolean dark, closing, resumed;
     private int focusId, prefsVersion;
     private int d(float v) { return Math.round(v * getResources().getDisplayMetrics().density); }
     private int ink() { return dark ? 0xfff6f6fa : 0xff24242b; }
@@ -26,18 +26,43 @@ public final class ControlCentreActivity extends Activity {
     @Override public void onCreate(Bundle saved) {
         super.onCreate(saved); Ui.init(this);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getWindow().setWindowAnimations(0); overridePendingTransition(0,0);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
         render();
-        panel.setPivotX(d(262)); panel.setPivotY(0); panel.setScaleX(.88f); panel.setScaleY(.88f); panel.setAlpha(0);
-        panel.animate().scaleX(1).scaleY(1).alpha(1).setDuration(220).start();
+        // tvOS animates the popup, never the full-screen blur behind it.
+        panel.setPivotX(d(262)); panel.setPivotY(0); panel.setScaleX(.86f); panel.setScaleY(.86f); panel.setAlpha(0);
+        panel.animate().scaleX(1).scaleY(1).alpha(1).setDuration(300)
+            .setInterpolator(new android.view.animation.DecelerateInterpolator(2.2f)).start();
     }
-    @Override protected void onResume() { super.onResume(); if(root != null && (prefsVersion != Prefs.version || dark != night())) render(); if(panel!=null)panel.setVisibility(View.VISIBLE); }
-    @Override protected void onPause() { if(panel!=null)panel.setVisibility(View.INVISIBLE); super.onPause(); }
-    @Override protected void onNewIntent(Intent intent) { super.onNewIntent(intent); close(); }
+    @Override protected void onResume() {
+        super.onResume(); resumed=true;
+        if(root != null && (prefsVersion != Prefs.version || dark != night())) render();
+        if(panel!=null) { panel.setVisibility(View.VISIBLE); panel.post(this::restoreControlFocus); }
+    }
+    @Override protected void onPause() {
+        resumed=false;
+        View focused=panel==null?null:panel.findFocus();
+        if(focused!=null && focused.getId()!=View.NO_ID) focusId=focused.getId();
+        if(panel!=null) { panel.animate().cancel(); panel.setScaleX(1);panel.setScaleY(1);panel.setAlpha(1);panel.setVisibility(View.INVISIBLE); }
+        super.onPause();
+    }
+    @Override public void onWindowFocusChanged(boolean focused) {
+        super.onWindowFocusChanged(focused);
+        if(focused && panel!=null) panel.post(this::restoreControlFocus);
+    }
+    private void restoreControlFocus() {
+        if(!resumed || closing || panel==null || panel.getVisibility()!=View.VISIBLE) return;
+        View focused=panel.findFocus();
+        if(focused!=null && focused.isShown() && focused.isFocusable()) return;
+        View wanted=root.findViewById(focusId==0?101:focusId);
+        if(wanted==null || !wanted.isShown() || !wanted.isFocusable()) wanted=root.findViewById(101);
+        wanted.requestFocus();
+    }
+    @Override protected void onNewIntent(Intent intent) { super.onNewIntent(intent); setIntent(intent);closing=false;render(); }
     private boolean night() { return HomeData.get(this).isNight(System.currentTimeMillis()); }
     private TextView label(String s, int sp, boolean bold) {
         TextView t=new TextView(this); t.setText(s); t.setTextSize(sp); t.setTextColor(ink()); t.setIncludeFontPadding(false);
-        t.setTypeface(Typeface.create("sans-serif",bold?Typeface.BOLD:Typeface.NORMAL)); return t;
+        t.setTypeface(bold?Ui.semibold:Ui.regular); return t;
     }
     private GradientDrawable glass(boolean focused, boolean selected, boolean round) {
         GradientDrawable g=new GradientDrawable(GradientDrawable.Orientation.TL_BR,
@@ -47,7 +72,7 @@ public final class ControlCentreActivity extends Activity {
         g.setStroke(d(1),focused?0xffffffff:dark?0x55ffffff:0xb3ffffff); return g;
     }
     private void tint(View view, int color) {
-        if(view instanceof ImageView)((ImageView)view).setColorFilter(color);
+        if(view instanceof ImageView) { if(!"profile-image".equals(view.getTag())) ((ImageView)view).setColorFilter(color); }
         else if(view instanceof TextView)((TextView)view).setTextColor(color);
         else if(view instanceof android.view.ViewGroup) {
             android.view.ViewGroup group=(android.view.ViewGroup)view;
@@ -61,7 +86,7 @@ public final class ControlCentreActivity extends Activity {
         v.setOnFocusChangeListener((w,focused)->{
             if(focused)focusId=id;
             w.setBackground(glass(focused,selected,round));tint(w,focused||selected?0xff202128:ink());
-            w.animate().scaleX(focused?1.045f:1).scaleY(focused?1.045f:1).setDuration(140).start();w.setElevation(focused?d(8):0);
+            w.animate().scaleX(focused?(round?1.12f:1.05f):1).scaleY(focused?(round?1.12f:1.05f):1).setDuration(140).start();w.setElevation(focused?d(8):0);
         });
     }
     private ImageView icon(int resource, int size) {
@@ -69,14 +94,14 @@ public final class ControlCentreActivity extends Activity {
         i.setLayoutParams(new LinearLayout.LayoutParams(d(size),d(size)));return i;
     }
     private void render() {
-        dark=night();prefsVersion=Prefs.version;root=new FrameLayout(this);root.setOnClickListener(v->close());
+        dark=night();prefsVersion=Prefs.version;root=new FrameLayout(this);root.setOnClickListener(v->close());root.setFocusable(false);root.setFocusableInTouchMode(false);root.setClipChildren(false);root.setClipToPadding(false);
         android.graphics.Bitmap ambient=HomeActivity.controlBackground(dark);
         if(ambient!=null && !ambient.isRecycled()) {
             android.graphics.drawable.BitmapDrawable backdrop=new android.graphics.drawable.BitmapDrawable(getResources(),ambient);
             backdrop.setGravity(Gravity.FILL);backdrop.setFilterBitmap(true);root.setBackground(backdrop);
         } else root.setBackgroundColor(dark?0xff161619:0xffececf1);
         panel=new LinearLayout(this);panel.setOrientation(LinearLayout.VERTICAL);panel.setPadding(d(6),d(6),d(6),d(6));
-        panel.setClipChildren(false);panel.setClipToPadding(false);panel.setClickable(true);
+        panel.setClipChildren(false);panel.setClipToPadding(false);panel.setClickable(true);panel.setFocusable(false);panel.setFocusableInTouchMode(false);
         FrameLayout.LayoutParams place=new FrameLayout.LayoutParams(d(262),-2,Gravity.TOP|Gravity.RIGHT);
         place.setMargins(d(24),d(18),d(39),d(18));root.addView(panel,place);
         LinearLayout header=new LinearLayout(this);header.setGravity(Gravity.CENTER_VERTICAL);
@@ -85,8 +110,8 @@ public final class ControlCentreActivity extends Activity {
         header.addView(clock,new LinearLayout.LayoutParams(0,-2,1));
         ImageView controls=icon(R.drawable.hybrid_ic_controls,18);FrameLayout badge=new FrameLayout(this);badge.setBackground(glass(false,false,true));
         FrameLayout.LayoutParams bp=new FrameLayout.LayoutParams(d(18),d(18),Gravity.CENTER);badge.addView(controls,bp);header.addView(badge,new LinearLayout.LayoutParams(d(30),d(30)));
-        String name=getSharedPreferences("hybrid_ui",0).getString("profile_name","Yash");
-        TextView avatar=label(name.isEmpty()?"Y":name.substring(0,1).toUpperCase(java.util.Locale.ROOT),15,true);avatar.setGravity(Gravity.CENTER);
+        String name=Profile.name(this);
+        ImageView avatar=new ImageView(this);avatar.setTag("profile-image");avatar.setImageBitmap(Profile.avatar(this,d(30)));avatar.setPadding(d(2),d(2),d(2),d(2));
         button(avatar,108,false,true,"Profile: "+name,()->settings("profile"));LinearLayout.LayoutParams ap=new LinearLayout.LayoutParams(d(34),d(34));ap.leftMargin=d(8);header.addView(avatar,ap);
         panel.addView(header,new LinearLayout.LayoutParams(-1,d(40)));
         LinearLayout top=new LinearLayout(this);top.setClipChildren(false);LinearLayout.LayoutParams tp=new LinearLayout.LayoutParams(-1,d(124));tp.topMargin=d(12);panel.addView(top,tp);
@@ -110,7 +135,16 @@ public final class ControlCentreActivity extends Activity {
         bluetooth.setNextFocusLeftId(101);bluetooth.setNextFocusDownId(105);bluetooth.setNextFocusUpId(102);
         root.findViewById(104).setNextFocusDownId(106);root.findViewById(105).setNextFocusDownId(109);
         root.findViewById(104).setNextFocusUpId(101);root.findViewById(105).setNextFocusUpId(103);
-        setContentView(root);View wanted=root.findViewById(focusId==0?101:focusId);if(wanted!=null)wanted.requestFocus();
+        // Every edge has an explicit destination; focus cannot fall onto the background.
+        int[] rounds={106,107,109,110};
+        for(int i=0;i<rounds.length;i++) {
+            View v=root.findViewById(rounds[i]);v.setNextFocusLeftId(rounds[Math.max(0,i-1)]);v.setNextFocusRightId(rounds[Math.min(rounds.length-1,i+1)]);v.setNextFocusDownId(rounds[i]);
+        }
+        root.findViewById(104).setNextFocusLeftId(104);root.findViewById(104).setNextFocusRightId(105);
+        root.findViewById(105).setNextFocusLeftId(104);root.findViewById(105).setNextFocusRightId(105);
+        wifi.setNextFocusRightId(102);bluetooth.setNextFocusRightId(103);standby.setNextFocusLeftId(101);
+        avatar.setNextFocusLeftId(108);avatar.setNextFocusRightId(108);avatar.setNextFocusUpId(108);avatar.setNextFocusDownId(101);
+        setContentView(root);panel.post(this::restoreControlFocus);
     }
     private View pill(int id,int resource,String name,String status,Runnable action) {
         LinearLayout v=new LinearLayout(this);v.setGravity(Gravity.CENTER_VERTICAL);v.setPadding(d(14),0,d(10),0);v.addView(icon(resource,22));
@@ -122,13 +156,13 @@ public final class ControlCentreActivity extends Activity {
     private void round(LinearLayout parent,int id,int resource,String name,boolean selected,Runnable action) {
         LinearLayout cell=new LinearLayout(this);cell.setOrientation(LinearLayout.VERTICAL);cell.setGravity(Gravity.CENTER);
         FrameLayout hit=new FrameLayout(this);ImageView image=icon(resource,22);hit.addView(image,new FrameLayout.LayoutParams(d(22),d(22),Gravity.CENTER));
-        button(hit,id,selected,true,name+(selected?", On":""),action);cell.addView(hit,new LinearLayout.LayoutParams(d(44),d(44)));
-        TextView caption=label(name,10,false);caption.setPadding(0,d(6),0,0);cell.addView(caption);parent.addView(cell,new LinearLayout.LayoutParams(0,-2,1));
+        button(hit,id,selected,true,name+(selected?", On":""),action);cell.addView(hit,new LinearLayout.LayoutParams(d(50),d(50)));
+        TextView caption=label(name,10,false);caption.setGravity(Gravity.CENTER);caption.setPadding(0,d(6),0,0);cell.addView(caption,new LinearLayout.LayoutParams(-1,-2));parent.addView(cell,new LinearLayout.LayoutParams(0,-2,1));
         hit.setNextFocusUpId(id<=107?104:105);
     }
     private void settings(String page) {startActivity(new Intent(this,SettingsActivity.class).putExtra("page",page));}
     private void system(String action) {try{startActivity(new Intent(action));}catch(Exception ignored){startActivity(FireTv.settingsIntent());}}
-    private void close(){if(closing)return;closing=true;panel.animate().scaleX(.92f).scaleY(.92f).alpha(0).setDuration(130).withEndAction(this::finish).start();}
+    private void close(){if(closing)return;closing=true;panel.animate().cancel();panel.animate().scaleX(.92f).scaleY(.92f).alpha(0).setDuration(130).withEndAction(()->{finish();overridePendingTransition(0,0);}).start();}
     @Override public void onBackPressed(){close();}
-    @Override public boolean dispatchKeyEvent(KeyEvent e){if(e.getKeyCode()==KeyEvent.KEYCODE_MENU){if(e.getAction()==KeyEvent.ACTION_UP)close();return true;}return super.dispatchKeyEvent(e);}
+    @Override public boolean dispatchKeyEvent(KeyEvent e){if(e.getAction()==KeyEvent.ACTION_DOWN && e.getKeyCode()>=KeyEvent.KEYCODE_DPAD_UP && e.getKeyCode()<=KeyEvent.KEYCODE_DPAD_CENTER)restoreControlFocus();if(e.getKeyCode()==KeyEvent.KEYCODE_MENU){if(e.getAction()==KeyEvent.ACTION_UP)close();return true;}return super.dispatchKeyEvent(e);}
 }
