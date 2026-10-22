@@ -1,0 +1,128 @@
+package io.freemytv;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
+import android.os.Bundle;
+import android.provider.Settings;
+import android.view.Gravity;
+import android.view.KeyEvent;
+import android.view.View;
+import android.view.WindowManager;
+import android.widget.*;
+import java.util.Calendar;
+
+/** Compact tvOS control layout: a tall StandBy tile, stacked connectivity pills, and round quick controls. */
+public final class ControlCentreActivity extends Activity {
+    private FrameLayout root;
+    private LinearLayout panel;
+    private boolean dark, closing;
+    private int focusId, prefsVersion;
+    private int d(float v) { return Math.round(v * getResources().getDisplayMetrics().density); }
+    private int ink() { return dark ? 0xfff6f6fa : 0xff24242b; }
+    private int muted() { return dark ? 0xffc2c4ce : 0xff606470; }
+
+    @Override public void onCreate(Bundle saved) {
+        super.onCreate(saved); Ui.init(this);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        render();
+        panel.setPivotX(d(262)); panel.setPivotY(0); panel.setScaleX(.88f); panel.setScaleY(.88f); panel.setAlpha(0);
+        panel.animate().scaleX(1).scaleY(1).alpha(1).setDuration(220).start();
+    }
+    @Override protected void onResume() { super.onResume(); if(root != null && (prefsVersion != Prefs.version || dark != night())) render(); }
+    @Override protected void onNewIntent(Intent intent) { super.onNewIntent(intent); close(); }
+    private boolean night() { return HomeData.get(this).isNight(System.currentTimeMillis()); }
+    private TextView label(String s, int sp, boolean bold) {
+        TextView t=new TextView(this); t.setText(s); t.setTextSize(sp); t.setTextColor(ink()); t.setIncludeFontPadding(false);
+        t.setTypeface(Typeface.create("sans-serif",bold?Typeface.BOLD:Typeface.NORMAL)); return t;
+    }
+    private GradientDrawable glass(boolean focused, boolean selected, boolean round) {
+        GradientDrawable g=new GradientDrawable(GradientDrawable.Orientation.TL_BR,
+            focused || selected ? new int[]{0xfffafaff,0xffe7e9f1}
+            : dark ? new int[]{0xc548484e,0xda24242a} : new int[]{0xe6f8f9ff,0xe0cdd2df});
+        if(round)g.setShape(GradientDrawable.OVAL);else g.setCornerRadius(d(26));
+        g.setStroke(d(1),focused?0xffffffff:dark?0x55ffffff:0xb3ffffff); return g;
+    }
+    private void tint(View view, int color) {
+        if(view instanceof ImageView)((ImageView)view).setColorFilter(color);
+        else if(view instanceof TextView)((TextView)view).setTextColor(color);
+        else if(view instanceof android.view.ViewGroup) {
+            android.view.ViewGroup group=(android.view.ViewGroup)view;
+            for(int i=0;i<group.getChildCount();i++)tint(group.getChildAt(i),color);
+        }
+    }
+    private void button(View v, int id, boolean selected, boolean round, String description, Runnable action) {
+        v.setId(id);v.setFocusable(true);v.setClickable(true);v.setContentDescription(description);
+        v.setBackground(glass(false,selected,round)); if(selected)tint(v,0xff202128);
+        v.setOnClickListener(w->action.run());
+        v.setOnFocusChangeListener((w,focused)->{
+            if(focused)focusId=id;
+            w.setBackground(glass(focused,selected,round));tint(w,focused||selected?0xff202128:ink());
+            w.animate().scaleX(focused?1.045f:1).scaleY(focused?1.045f:1).setDuration(140).start();w.setElevation(focused?d(8):0);
+        });
+    }
+    private ImageView icon(int resource, int size) {
+        ImageView i=new ImageView(this); i.setImageResource(resource);i.setColorFilter(ink());
+        i.setLayoutParams(new LinearLayout.LayoutParams(d(size),d(size)));return i;
+    }
+    private void render() {
+        dark=night();prefsVersion=Prefs.version;root=new FrameLayout(this);root.setBackgroundColor(0x30000000);root.setOnClickListener(v->close());
+        panel=new LinearLayout(this);panel.setOrientation(LinearLayout.VERTICAL);panel.setPadding(d(6),d(6),d(6),d(6));
+        panel.setClipChildren(false);panel.setClipToPadding(false);panel.setClickable(true);
+        FrameLayout.LayoutParams place=new FrameLayout.LayoutParams(d(262),-2,Gravity.TOP|Gravity.RIGHT);
+        place.setMargins(d(24),d(18),d(39),d(18));root.addView(panel,place);
+        LinearLayout header=new LinearLayout(this);header.setGravity(Gravity.CENTER_VERTICAL);
+        TextClock clock=new TextClock(this);clock.setTextSize(15);clock.setTextColor(ink());clock.setFormat12Hour("h:mm a");clock.setFormat24Hour("H:mm");
+        clock.setTimeZone("Asia/Kolkata");clock.setTypeface(Typeface.create("sans-serif",Typeface.BOLD));clock.setPadding(d(6),0,0,0);
+        header.addView(clock,new LinearLayout.LayoutParams(0,-2,1));
+        ImageView controls=icon(R.drawable.hybrid_ic_controls,18);FrameLayout badge=new FrameLayout(this);badge.setBackground(glass(false,false,true));
+        FrameLayout.LayoutParams bp=new FrameLayout.LayoutParams(d(18),d(18),Gravity.CENTER);badge.addView(controls,bp);header.addView(badge,new LinearLayout.LayoutParams(d(30),d(30)));
+        String name=getSharedPreferences("hybrid_ui",0).getString("profile_name","Yash");
+        TextView avatar=label(name.isEmpty()?"Y":name.substring(0,1).toUpperCase(java.util.Locale.ROOT),15,true);avatar.setGravity(Gravity.CENTER);
+        button(avatar,108,false,true,"Profile: "+name,()->settings("profile"));LinearLayout.LayoutParams ap=new LinearLayout.LayoutParams(d(34),d(34));ap.leftMargin=d(8);header.addView(avatar,ap);
+        panel.addView(header,new LinearLayout.LayoutParams(-1,d(40)));
+        LinearLayout top=new LinearLayout(this);top.setClipChildren(false);LinearLayout.LayoutParams tp=new LinearLayout.LayoutParams(-1,d(124));tp.topMargin=d(12);panel.addView(top,tp);
+        LinearLayout standby=new LinearLayout(this);standby.setOrientation(LinearLayout.VERTICAL);standby.setGravity(Gravity.CENTER);standby.addView(icon(R.drawable.hybrid_ic_standby,44));
+        TextView st=label("StandBy",12,true);LinearLayout.LayoutParams sl=new LinearLayout.LayoutParams(-2,-2);sl.topMargin=d(10);standby.addView(st,sl);
+        button(standby,101,false,false,"StandBy",()->startActivity(new Intent(this,StandByActivity.class)));top.addView(standby,new LinearLayout.LayoutParams(0,-1,1));
+        LinearLayout connections=new LinearLayout(this);connections.setOrientation(LinearLayout.VERTICAL);connections.setClipChildren(false);LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(0,-1,1);cp.leftMargin=d(8);top.addView(connections,cp);
+        View wifi=pill(102,R.drawable.hybrid_ic_wifi,"Wi-Fi","Network",()->system(Settings.ACTION_WIFI_SETTINGS));connections.addView(wifi,new LinearLayout.LayoutParams(-1,0,1));
+        View bluetooth=pill(103,R.drawable.hybrid_ic_bluetooth,"Bluetooth","Accessories",()->system(Settings.ACTION_BLUETOOTH_SETTINGS));LinearLayout.LayoutParams bt=new LinearLayout.LayoutParams(-1,0,1);bt.topMargin=d(8);connections.addView(bluetooth,bt);
+        LinearLayout middle=new LinearLayout(this);middle.setClipChildren(false);LinearLayout.LayoutParams mp=new LinearLayout.LayoutParams(-1,d(58));mp.topMargin=d(8);panel.addView(middle,mp);
+        middle.addView(pill(104,R.drawable.hybrid_ic_input,"Inputs","",()->system("android.settings.TV_INPUT_SETTINGS")),new LinearLayout.LayoutParams(0,-1,1));
+        LinearLayout.LayoutParams sp=new LinearLayout.LayoutParams(0,-1,1);sp.leftMargin=d(8);middle.addView(pill(105,R.drawable.hybrid_ic_settings,"Settings","",()->settings("")),sp);
+        LinearLayout quick=new LinearLayout(this);quick.setClipChildren(false);quick.setGravity(Gravity.CENTER);LinearLayout.LayoutParams qp=new LinearLayout.LayoutParams(-1,-2);qp.topMargin=d(10);panel.addView(quick,qp);
+        round(quick,106,R.drawable.hybrid_ic_darkmode,"Dark",dark,()->{Prefs.setTheme(dark?"light":"dark");render();});
+        round(quick,107,R.drawable.hybrid_ic_palette,"Auto","auto".equals(Prefs.theme()),()->{Prefs.setTheme("auto");render();});
+        round(quick,109,R.drawable.hybrid_ic_backdrop,"Saver",false,()->startActivity(new Intent(this,SettingsActivity.class).putExtra("screensaver",true)));
+        round(quick,110,R.drawable.hybrid_ic_display,"Display",false,()->system(Settings.ACTION_DISPLAY_SETTINGS));
+        // Explicit D-pad links keep the unequal two-column grid predictable on Fire TV.
+        standby.setNextFocusRightId(102);standby.setNextFocusDownId(104);standby.setNextFocusUpId(108);
+        wifi.setNextFocusLeftId(101);wifi.setNextFocusDownId(103);wifi.setNextFocusUpId(108);
+        bluetooth.setNextFocusLeftId(101);bluetooth.setNextFocusDownId(105);bluetooth.setNextFocusUpId(102);
+        root.findViewById(104).setNextFocusDownId(106);root.findViewById(105).setNextFocusDownId(109);
+        root.findViewById(104).setNextFocusUpId(101);root.findViewById(105).setNextFocusUpId(103);
+        setContentView(root);View wanted=root.findViewById(focusId==0?101:focusId);if(wanted!=null)wanted.requestFocus();
+    }
+    private View pill(int id,int resource,String name,String status,Runnable action) {
+        LinearLayout v=new LinearLayout(this);v.setGravity(Gravity.CENTER_VERTICAL);v.setPadding(d(14),0,d(10),0);v.addView(icon(resource,22));
+        LinearLayout words=new LinearLayout(this);words.setOrientation(LinearLayout.VERTICAL);LinearLayout.LayoutParams wp=new LinearLayout.LayoutParams(0,-2,1);wp.leftMargin=d(10);v.addView(words,wp);
+        TextView title=label(name,12,true);title.setSingleLine(true);words.addView(title);
+        if(!status.isEmpty()){TextView state=label(status,10,false);state.setTextColor(muted());state.setSingleLine(true);words.addView(state);}
+        button(v,id,false,false,name,action);return v;
+    }
+    private void round(LinearLayout parent,int id,int resource,String name,boolean selected,Runnable action) {
+        LinearLayout cell=new LinearLayout(this);cell.setOrientation(LinearLayout.VERTICAL);cell.setGravity(Gravity.CENTER);
+        FrameLayout hit=new FrameLayout(this);ImageView image=icon(resource,22);hit.addView(image,new FrameLayout.LayoutParams(d(22),d(22),Gravity.CENTER));
+        button(hit,id,selected,true,name+(selected?", On":""),action);cell.addView(hit,new LinearLayout.LayoutParams(d(44),d(44)));
+        TextView caption=label(name,10,false);caption.setPadding(0,d(6),0,0);cell.addView(caption);parent.addView(cell,new LinearLayout.LayoutParams(0,-2,1));
+        hit.setNextFocusUpId(id<=107?104:105);
+    }
+    private void settings(String page) {startActivity(new Intent(this,SettingsActivity.class).putExtra("page",page));}
+    private void system(String action) {try{startActivity(new Intent(action));}catch(Exception ignored){startActivity(FireTv.settingsIntent());}}
+    private void close(){if(closing)return;closing=true;panel.animate().scaleX(.92f).scaleY(.92f).alpha(0).setDuration(130).withEndAction(this::finish).start();}
+    @Override public void onBackPressed(){close();}
+    @Override public boolean dispatchKeyEvent(KeyEvent e){if(e.getKeyCode()==KeyEvent.KEYCODE_MENU){if(e.getAction()==KeyEvent.ACTION_UP)close();return true;}return super.dispatchKeyEvent(e);}
+}

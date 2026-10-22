@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="io.freemytv"
-    android:versionCode="2"
-    android:versionName="1.1-hybrid">
+    android:versionCode="3"
+    android:versionName="1.2-hybrid">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_TV_LISTINGS" />
@@ -84,6 +84,10 @@
             android:theme="@style/TvSettings.Panel">
 
         </activity>
+
+        <activity android:name=".ControlCentreActivity" android:process=":home" android:exported="true"
+            android:launchMode="singleTask" android:excludeFromRecents="true" android:screenOrientation="landscape"
+            android:theme="@style/TvSettings.Panel" />
 
         <!-- The home screen. Its own process (:home): if it ever crashes, the safety net in the main process still
              works. It only becomes the TV's home screen in Free My TV mode (cmd package set-home-activity). -->

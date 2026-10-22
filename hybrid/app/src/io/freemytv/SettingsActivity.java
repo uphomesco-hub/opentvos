@@ -63,7 +63,7 @@ public class SettingsActivity extends Activity {
         panel = new FrameLayout(this);
         panel.setClickable(true);
         panel.setElevation(dp(20));
-        FrameLayout.LayoutParams pp = new FrameLayout.LayoutParams(Math.min(dp(440), (int)(getResources().getDisplayMetrics().widthPixels * .47f)), -1, Gravity.RIGHT);
+        FrameLayout.LayoutParams pp = new FrameLayout.LayoutParams(Math.min(dp(340), (int)(getResources().getDisplayMetrics().widthPixels * .37f)), -1, Gravity.RIGHT);
         pp.setMargins(dp(22), dp(22), dp(22), dp(22));
         root.addView(panel, pp);
         LinearLayout column = new LinearLayout(this);
@@ -85,8 +85,8 @@ public class SettingsActivity extends Activity {
         panel.addView(column);
         setContentView(root);
         paintPanel();
-        if (getIntent().getBooleanExtra("control_center", false)) push("Control Centre", this::controlCentre);
-        else push("Settings", this::settings);
+        push("Settings", this::settings);
+        if ("profile".equals(getIntent().getStringExtra("page"))) push("Profile", this::profile);
         panel.setTranslationX(dp(70)); panel.setAlpha(0);
         panel.animate().translationX(0).alpha(1).setDuration(220).start();
         if (getIntent().getBooleanExtra("screensaver", false)) root.post(this::showPreview);
@@ -97,19 +97,12 @@ public class SettingsActivity extends Activity {
         setIntent(intent);
         if (preview != null) closePreview();
         stack.clear();
-        if (intent.getBooleanExtra("control_center", false)) push("Control Centre", this::controlCentre);
-        else push("Settings", this::settings);
+        push("Settings", this::settings);
+        if ("profile".equals(intent.getStringExtra("page"))) push("Profile", this::profile);
         if (intent.getBooleanExtra("screensaver", false)) root.post(this::showPreview);
     }
 
-    private boolean isNight() {
-        if ("dark".equals(Prefs.theme())) return true;
-        if ("light".equals(Prefs.theme())) return false;
-        HomeData.Weather wx = HomeData.get(this).weather;
-        long now = System.currentTimeMillis();
-        int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
-        return wx.sunrise > 0 && wx.sunset > wx.sunrise ? now < wx.sunrise || now >= wx.sunset : hour < 7 || hour >= 19;
-    }
+    private boolean isNight() { return HomeData.get(this).isNight(System.currentTimeMillis()); }
     private void paintPanel() {
         dark = isNight();
         boolean frosted = "frosted".equals(local().getString("glass", "liquid"));
@@ -216,18 +209,6 @@ public class SettingsActivity extends Activity {
         row("♪", "Navigation sounds", Prefs.sounds() ? "On" : "Off", () -> { Prefs.setSounds(!Prefs.sounds()); refresh(); });
         row("▣", "StandBy appearance", "", () -> push("StandBy", this::standby));
     }
-    private void controlCentre() {
-        row("●", local().getString("profile_name", "Yash"), "Profile", () -> push("Profile", this::profile));
-        section("Quick controls");
-        row("◐", "Dark Mode", (dark ? "On" : "Off") + ("auto".equals(Prefs.theme()) ? " · Auto" : ""),
-                () -> { Prefs.setTheme(dark ? "light" : "dark"); refresh(); });
-        row("☼", "Automatic appearance", "auto".equals(Prefs.theme()) ? "On" : "Off", () -> { Prefs.setTheme("auto"); refresh(); });
-        row("◷", "StandBy", "Start", () -> startActivity(new Intent(this, StandByActivity.class)));
-        row("⌘", "Wi-Fi", "", () -> system(Settings.ACTION_WIFI_SETTINGS));
-        row("ᛒ", "Bluetooth", "", () -> system(Settings.ACTION_BLUETOOTH_SETTINGS));
-        row("▣", "Inputs", "", () -> system("android.settings.TV_INPUT_SETTINGS"));
-        row("⚙", "Settings", "", () -> push("Settings", this::settings));
-    }
     private void settings() {
         row("●", "Profile", local().getString("profile_name", "Yash"), () -> push("Profile", this::profile));
         row("◐", "Appearance", mode(), () -> push("Appearance", this::appearance));
@@ -321,9 +302,9 @@ public class SettingsActivity extends Activity {
     }
     private void standby() {
         row("◷", "Start StandBy", "", () -> startActivity(new Intent(this, StandByActivity.class)));
-        row("▣", "Layout", local().getString("standby_layout", "split"), () -> choose("StandBy Layout",
+        row("▣", "Layout", local().getString("standby_layout", "analog"), () -> choose("StandBy Layout",
                 new String[]{"Clock & Weather", "Large Digital Clock", "Analogue Clock", "Calendar"},
-                new String[]{"split", "digital", "analog", "calendar"}, local().getString("standby_layout", "split"), v -> local().edit().putString("standby_layout", v).apply()));
+                new String[]{"split", "digital", "analog", "calendar"}, local().getString("standby_layout", "analog"), v -> local().edit().putString("standby_layout", v).apply()));
         note("StandBy is a clock display you can start here. Back returns to settings. Your photo screensaver and its system activation remain unchanged.");
     }
     private void screensaver() {

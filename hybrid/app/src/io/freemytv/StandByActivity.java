@@ -44,7 +44,7 @@ public class StandByActivity extends Activity {
         private final String layout;
         private final Runnable tick = new Runnable() { public void run() { if (!running) return; data.refreshIfStale(); invalidate(); handler.postDelayed(this, 1000); } };
         ClockView(Context c) {
-            super(c); data = HomeData.get(c); layout = c.getSharedPreferences("hybrid_ui", 0).getString("standby_layout", "split");
+            super(c); data = HomeData.get(c); layout = c.getSharedPreferences("hybrid_ui", 0).getString("standby_layout", "analog");
             setFocusable(true); setContentDescription("StandBy. Press Back or Select to return."); setOnClickListener(v -> ((Activity)c).finish());
         }
         void start() { if (running) return; running = true; data.addListener(this); handler.post(tick); }
@@ -100,7 +100,8 @@ public class StandByActivity extends Activity {
             hand(c,cx,cy,(t.get(Calendar.MINUTE)+t.get(Calendar.SECOND)/60f)*6,285,9,0xfff1f5ff);
             hand(c,cx,cy,t.get(Calendar.SECOND)*6,300,3,0xff83b8ff);
             p.setColor(0xff83b8ff); c.drawCircle(cx,cy,14,p);
-            text(c,format("EEE, d MMMM")+" · IST",960,925,36,0xff9fb5d8,false);
+            text(c,format("h:mm:ss a"),960,923,48,0xffe4edff,true);
+            text(c,format("EEE, d MMMM")+" · IST",960,969,26,0xff9fb5d8,false);
         }
         private void hand(Canvas c,float x,float y,float degrees,float length,float width,int color) {
             double a=Math.toRadians(degrees-90); p.setStrokeWidth(width);p.setStrokeCap(Paint.Cap.ROUND);p.setColor(color);

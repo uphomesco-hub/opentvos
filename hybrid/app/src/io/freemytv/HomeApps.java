@@ -389,7 +389,7 @@ final class HomeApps {
                 intent = new Intent(Intent.ACTION_VIEW, TvContract.buildChannelUriForPassthroughInput(it.inputId));
                 break;
             case SETTINGS:
-                intent = new Intent().setComponent(new ComponentName(a, SettingsActivity.class));
+                intent = new Intent().setComponent(new ComponentName(a, ControlCentreActivity.class));
                 break;
             case ANDROID_SETTINGS:
                 intent = FireTv.settingsIntent();

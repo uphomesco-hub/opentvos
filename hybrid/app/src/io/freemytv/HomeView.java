@@ -2057,7 +2057,7 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
                 return true;
             case KeyEvent.KEYCODE_MENU:
                 if(!down && e.getRepeatCount()==0) {
-                    activity.startActivity(new Intent(activity,SettingsActivity.class).putExtra("control_center",true));
+                    activity.startActivity(new Intent(activity,ControlCentreActivity.class));
                 }
                 return true;
             case KeyEvent.KEYCODE_BACK:
@@ -2321,7 +2321,7 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
                 return true;
             case KeyEvent.KEYCODE_MENU:
                 if(!down && e.getRepeatCount()==0) {
-                    activity.startActivity(new Intent(activity,SettingsActivity.class).putExtra("control_center",true));
+                    activity.startActivity(new Intent(activity,ControlCentreActivity.class));
                 }
                 return true;
             case KeyEvent.KEYCODE_BACK:
