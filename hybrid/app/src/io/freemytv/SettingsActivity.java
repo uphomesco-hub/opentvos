@@ -300,11 +300,15 @@ public class SettingsActivity extends Activity {
             } catch (Exception e) { inputs[0].setError("Enter a city and valid coordinates"); }
         })); dialog.show();
     }
+    private String standbyLabel() {
+        String v=local().getString("standby_layout","clock_calendar");
+        return "clock_calendar".equals(v)?"Clock & Calendar":"split".equals(v)?"Clock & Weather":"digital".equals(v)?"Digital":"analog".equals(v)?"Analogue":"Calendar";
+    }
     private void standby() {
         row("◷", "Start StandBy", "", () -> startActivity(new Intent(this, StandByActivity.class)));
-        row("▣", "Layout", local().getString("standby_layout", "analog"), () -> choose("StandBy Layout",
-                new String[]{"Clock & Weather", "Large Digital Clock", "Analogue Clock", "Calendar"},
-                new String[]{"split", "digital", "analog", "calendar"}, local().getString("standby_layout", "analog"), v -> local().edit().putString("standby_layout", v).apply()));
+        row("▣", "Layout", standbyLabel(), () -> choose("StandBy Layout",
+                new String[]{"Clock & Calendar", "Clock & Weather", "Large Digital Clock", "Analogue Clock", "Calendar"},
+                new String[]{"clock_calendar", "split", "digital", "analog", "calendar"}, local().getString("standby_layout", "clock_calendar"), v -> local().edit().putString("standby_layout", v).apply()));
         note("StandBy is a clock display you can start here. Back returns to settings. Your photo screensaver and its system activation remain unchanged.");
     }
     private void screensaver() {

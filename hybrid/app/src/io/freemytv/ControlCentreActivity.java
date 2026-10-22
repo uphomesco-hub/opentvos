@@ -31,7 +31,8 @@ public final class ControlCentreActivity extends Activity {
         panel.setPivotX(d(262)); panel.setPivotY(0); panel.setScaleX(.88f); panel.setScaleY(.88f); panel.setAlpha(0);
         panel.animate().scaleX(1).scaleY(1).alpha(1).setDuration(220).start();
     }
-    @Override protected void onResume() { super.onResume(); if(root != null && (prefsVersion != Prefs.version || dark != night())) render(); }
+    @Override protected void onResume() { super.onResume(); if(root != null && (prefsVersion != Prefs.version || dark != night())) render(); if(panel!=null)panel.setVisibility(View.VISIBLE); }
+    @Override protected void onPause() { if(panel!=null)panel.setVisibility(View.INVISIBLE); super.onPause(); }
     @Override protected void onNewIntent(Intent intent) { super.onNewIntent(intent); close(); }
     private boolean night() { return HomeData.get(this).isNight(System.currentTimeMillis()); }
     private TextView label(String s, int sp, boolean bold) {
