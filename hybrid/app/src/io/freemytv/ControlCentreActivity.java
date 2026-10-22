@@ -169,7 +169,7 @@ public final class ControlCentreActivity extends Activity {
         hit.setNextFocusUpId(id<=107?104:105);
     }
     private void settings(String page) {startActivity(new Intent(this,SettingsActivity.class).putExtra("page",page));}
-    private void system(String action) {try{startActivity(new Intent(action));}catch(Exception ignored){startActivity(FireTv.settingsIntent());}}
+    private void system(String action) {FireTv.openSettings(this,action);}
     private void close(){if(closing)return;closing=true;panel.animate().cancel();panel.animate().scaleX(.92f).scaleY(.92f).alpha(0).setDuration(130).withEndAction(()->{finish();overridePendingTransition(0,0);}).start();}
     @Override public void onBackPressed(){close();}
     @Override public boolean dispatchKeyEvent(KeyEvent e){if(e.getAction()==KeyEvent.ACTION_DOWN && e.getKeyCode()>=KeyEvent.KEYCODE_DPAD_UP && e.getKeyCode()<=KeyEvent.KEYCODE_DPAD_CENTER)restoreControlFocus();if(e.getKeyCode()==KeyEvent.KEYCODE_MENU){if(e.getAction()==KeyEvent.ACTION_UP)close();return true;}return super.dispatchKeyEvent(e);}

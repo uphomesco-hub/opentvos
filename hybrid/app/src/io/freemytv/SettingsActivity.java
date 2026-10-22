@@ -435,7 +435,7 @@ public class SettingsActivity extends Activity {
         try { startActivity(FireTv.settingsIntent()); } catch (Exception e) { Toast.makeText(this, "TV settings are unavailable", Toast.LENGTH_SHORT).show(); }
     }
     private void system(String action) {
-        try { startActivity(new Intent(action)); } catch (Exception e) { tvSettings(); }
+        FireTv.openSettings(this,action);
     }
     private void showPreview() {
         preview = new DreamView(this); root.setVisibility(View.GONE); setContentView(preview); preview.start();
