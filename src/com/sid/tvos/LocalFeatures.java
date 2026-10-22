@@ -96,8 +96,8 @@ public final class LocalFeatures {
                 FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT,
                 Gravity.TOP | Gravity.START);
         layout.leftMargin = dp(activity, 45);
-        // Continue-watching title occupies the original y=27dp line. Keep that line free.
-        layout.topMargin = dp(activity, 78);
+        // Align with the native status clock; the shelf heading starts below this line.
+        layout.topMargin = dp(activity, 24);
         int topId = activity.getResources().getIdentifier("topBar", "id", activity.getPackageName());
         View topBar = topId == 0 ? null : activity.findViewById(topId);
         int position = topBar == null ? host.getChildCount() : host.indexOfChild(topBar) + 1;

@@ -1,6 +1,6 @@
 # Local status and automatic appearance
 
-`LocalFeatures` extends the original layout with a compact, nonfocusable line at the top left. It shows the configured city, Celsius temperature, estimated Indian AQI and the time in IST. The original artwork, dock and top-right clock remain native. The line is inserted below modal panels and below the original continue-watching heading. Its exact placement still needs visual validation on the TV after an explicitly requested APK build/install.
+`LocalFeatures` extends the original layout with a compact, nonfocusable line at the top left. It shows the configured city, Celsius temperature, estimated Indian AQI and the time in IST. The original artwork, dock and top-right clock remain native. The line is inserted below modal panels and aligned with the original status clock, above the continue-watching heading. Placement is validated on the TV during the preview check.
 
 ## Defaults and controls
 
