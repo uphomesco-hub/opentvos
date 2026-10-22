@@ -161,7 +161,7 @@ public final class ControlCentreActivity extends Activity {
         button(v,id,false,false,name,action);return v;
     }
     private void round(LinearLayout parent,int id,int resource,String name,boolean selected,Runnable action) {
-        LinearLayout cell=new LinearLayout(this);cell.setOrientation(LinearLayout.VERTICAL);cell.setGravity(Gravity.CENTER);cell.setClipChildren(false);cell.setClipToPadding(false);
+        LinearLayout cell=new LinearLayout(this);cell.setOrientation(LinearLayout.VERTICAL);cell.setGravity(Gravity.CENTER);cell.setClipChildren(false);cell.setClipToPadding(false);cell.setPadding(0,d(4),0,0);
         FrameLayout hit=new FrameLayout(this);ImageView image=icon(resource,22);hit.addView(image,new FrameLayout.LayoutParams(d(22),d(22),Gravity.CENTER));
         button(hit,id,selected,true,name+(selected?", On":""),action);cell.addView(hit,new LinearLayout.LayoutParams(d(50),d(50)));
         TextView caption=label(name,10,false);caption.setGravity(Gravity.CENTER);caption.setPadding(0,d(6),0,0);cell.addView(caption,new LinearLayout.LayoutParams(-1,-2));parent.addView(cell,new LinearLayout.LayoutParams(0,-2,1));
