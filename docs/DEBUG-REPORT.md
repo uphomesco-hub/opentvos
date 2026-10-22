@@ -10,6 +10,6 @@ Confirmed causes:
 
 Changes: skip placeholders/retry layout, merge local observed playback history on all five native provider-return paths (including null/permission-failure cases), preserve exact renderer, add empty-row keyless discovery, native solar-theme defaults and local weather/AQI chip. Settings exposes viewer permission/data information. A new package preserves the existing two launchers.
 
-Verification before private source push: new Java compilation, complete merged Smali-to-DEX assembly, host regression tests and native ABI/lifecycle/provider-fallback contracts. No APK is required for this verification pass. Subsequent authorized APK/device validation is recorded separately in DEVICE-VERIFICATION.md after installation.
+Verification before private source push: new Java compilation, complete merged Smali-to-DEX assembly, host regression tests and native ABI/lifecycle/provider-fallback contracts. No APK is required for this verification pass. Subsequent authorized APK/device validation is recorded in DEVICE-VERIFICATION.md. Runtime navigation, Netflix shelf/launch, keyless Prime discovery and local widget placement passed; Prime playback-history capture and a full on-device day/night transition remain unexercised.
 
 Limits: source/bytecode checks do not establish live renderer placement or every streaming app's published data. Device test is required. No full-account Netflix history is claimed; discovery is public TV releases, clearly labelled separately.
