@@ -68,7 +68,12 @@ public final class ControlCentreActivity extends Activity {
         i.setLayoutParams(new LinearLayout.LayoutParams(d(size),d(size)));return i;
     }
     private void render() {
-        dark=night();prefsVersion=Prefs.version;root=new FrameLayout(this);root.setBackgroundColor(0x30000000);root.setOnClickListener(v->close());
+        dark=night();prefsVersion=Prefs.version;root=new FrameLayout(this);root.setOnClickListener(v->close());
+        android.graphics.Bitmap ambient=HomeActivity.controlBackground(dark);
+        if(ambient!=null && !ambient.isRecycled()) {
+            android.graphics.drawable.BitmapDrawable backdrop=new android.graphics.drawable.BitmapDrawable(getResources(),ambient);
+            backdrop.setGravity(Gravity.FILL);backdrop.setFilterBitmap(true);root.setBackground(backdrop);
+        } else root.setBackgroundColor(dark?0xff161619:0xffececf1);
         panel=new LinearLayout(this);panel.setOrientation(LinearLayout.VERTICAL);panel.setPadding(d(6),d(6),d(6),d(6));
         panel.setClipChildren(false);panel.setClipToPadding(false);panel.setClickable(true);
         FrameLayout.LayoutParams place=new FrameLayout.LayoutParams(d(262),-2,Gravity.TOP|Gravity.RIGHT);

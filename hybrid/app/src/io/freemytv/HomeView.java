@@ -605,6 +605,10 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
         updateHistoryBackdrop();heroDirty=true;
     }
 
+    android.graphics.Bitmap controlBackground(boolean dark) {
+        return bgTo==null ? null : dark && bgTo.nightImage!=null ? bgTo.nightImage : bgTo.lightImage;
+    }
+
     private void updateHistoryBackdrop() {
         if (continueRow.count()==0) {showBackdrop(null);return;}
         Backdrop b=ContinueWatching.backdrop(continueRow.item(Math.min(continueIndex,continueRow.count()-1)));

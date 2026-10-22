@@ -16,6 +16,10 @@ import android.widget.TextView;
  */
 public class HomeActivity extends Activity {
     private HomeView home;
+    private static java.lang.ref.WeakReference<HomeActivity> current = new java.lang.ref.WeakReference<>(null);
+    static android.graphics.Bitmap controlBackground(boolean dark) {
+        HomeActivity a=current.get();return a==null || a.home==null ? null : a.home.controlBackground(dark);
+    }
     private int prefsVersion = Prefs.version;   // settings changed while we were away: start over
 
     @Override protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +40,7 @@ public class HomeActivity extends Activity {
         }
         Ui.init(this);
         home = new HomeView(this);
+        current = new java.lang.ref.WeakReference<>(this);
         setContentView(home);
         getWindow().setBackgroundDrawable(null);
     }
