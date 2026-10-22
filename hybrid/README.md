@@ -1,4 +1,4 @@
-# Free My TV hybrid preview
+# OpenTVOS - Free My TV hybrid
 
 This is the active `io.freemytv` home-screen fork. The repository root preserves the separate tvOS-based experiment.
 

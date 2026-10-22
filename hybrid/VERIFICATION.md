@@ -19,4 +19,4 @@ Verified on the TV:
 
 Backup: the exact original APK remains local. A same-signature version-4 restore APK was also built from the preserved original source so restoration does not require uninstalling or clearing preferences. It was verified, not installed. Its SHA-256 is `ce8e4318096a805f398322c3337f28bd050bd9205e0d1489868ebc7d94855645`.
 
-Screenshots and personal playback evidence remain local under `tv-audit/hybrid-20261022`, outside this repository. Credentials, signing keys and APKs are not committed. This repository remains private.
+Screenshots and personal playback evidence remain local under `tv-audit/hybrid-20261022`, outside this repository. Credentials, signing keys and APKs are not committed. The repository was private during device verification and was subsequently published as OpenTVOS.

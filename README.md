@@ -1,6 +1,16 @@
-# Yash TV
+# OpenTVOS
 
-Private, maintainable modifications of the supplied tvOS Launcher 0.5 beta. Keeps its existing hero artwork, favourite dock, app grid, glass menus and settings renderer. Fire OS continues to run underneath, as it also does with Free My TV.
+Custom TV home-screen experiments for Android TV and Fire TV.
+
+The current interface is in **[hybrid/](hybrid/)**: a Free My TV-based home screen with its original dock geometry and cinematic screensaver, app-specific Continue Watching cards, blurred artwork backgrounds, compact tvOS-style controls, automatic Light/Dark appearance, Delhi weather and estimated Indian AQI, and analog-clock/calendar StandBy.
+
+See the [hybrid build instructions](hybrid/README.md) and [device verification](hybrid/VERIFICATION.md). Configuration, API keys, signing keys and APK build outputs stay local and are excluded from Git.
+
+## Earlier tvOS-based experiment
+
+The root source and build script below preserve the earlier standalone experiment. They are separate from the current `io.freemytv` hybrid.
+
+Maintainable modifications of the supplied tvOS Launcher 0.5 beta. Keeps its existing hero artwork, favourite dock, app grid, glass menus and settings renderer. Fire OS continues to run underneath, as it also does with Free My TV.
 
 ## Changes
 
