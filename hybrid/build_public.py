@@ -8,10 +8,14 @@ import shutil
 import subprocess
 import tempfile
 import zipfile
+import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parent
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('--output', type=Path, default=ROOT / 'dist/OpenTVOS-v1.2.1.apk')
+version = ET.parse(ROOT / 'app/AndroidManifest.xml').getroot().get('{http://schemas.android.com/apk/res/android}versionName')
+if not version or any(c not in '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-_' for c in version):
+    raise ValueError('Invalid manifest version name')
+parser.add_argument('--output', type=Path, default=ROOT / ('dist/OpenTVOS-v' + version + '.apk'))
 args = parser.parse_args()
 destination = args.output.resolve()
 destination.parent.mkdir(parents=True, exist_ok=True)

@@ -12,6 +12,7 @@ import android.graphics.Canvas;
 import android.graphics.LinearGradient;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.RadialGradient;
 import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.RectF;
@@ -158,6 +159,8 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
     private List<HomeApps.Item> shelf = new ArrayList<>();
     private Spring[] tileFocus = new Spring[0];
     private RectF[] tileRects = new RectF[0];
+    private final Map<String, Shader> dockGlows = new HashMap<>();
+    private final Paint dockGlowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Map<String, Bitmap> crispLogos = new HashMap<>();   // logos already sized for the focused tile
     /** Each app's tile like its Apple TV icon: brand colors (top, bottom) and logo (0 = as is, 1 = white, 2 = dark). */
     private static final Map<String, int[]> TILE_STYLE = new HashMap<>();
@@ -1200,24 +1203,9 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
         crispLogos.clear();
     }
 
-    /** Shelf layer: the glass bar and its shadow (it only changes with the background). */
+    /** The preview dock floats directly over the existing artwork; no platter or tile backgrounds. */
     private void drawPlatter(Canvas c) {
-        if (shelf.isEmpty()) return;
-        float radius = (TILE_RADIUS + SHELF_PAD) * k;
-        tmp.set(platterRect);
-        tmp.offset(0, 18 * k);
-        shadow.setColor(tone(0x1F000000, 0x52000000));
-        shadows.draw(c, tmp, radius, SHADOW_BLUR * k, shadow);
-        // White glass by day; smoked glass at night.
-        scene.liquid(c, platterRect, radius, tone(0xFFFFFFFF, SMOKE), tone(0.42f, 0.12f), tone(0.03f, 0.08f),
-                tone(30, 34) * k, tone(22, 28) * k, tone(0.65f, 0.95f), 1);
-        boolean liquid="liquid".equals(activity.getSharedPreferences("hybrid_ui",Context.MODE_PRIVATE).getString("glass","liquid"));
-        rim.setShader(null);rim.setStyle(Paint.Style.STROKE);rim.setStrokeWidth((liquid?2.6f:1.5f)*k);
-        rim.setColor(tone(liquid?0xDFFFFFFF:0x99FFFFFF,liquid?0x80FFFFFF:0x45FFFFFF));
-        c.drawRoundRect(platterRect,radius,radius,rim);
-        tmp.set(platterRect);tmp.inset(3*k,3*k);rim.setStrokeWidth(1*k);rim.setColor(tone(0x30FFFFFF,0x25FFFFFF));
-        c.drawRoundRect(tmp,Math.max(0,radius-3*k),Math.max(0,radius-3*k),rim);
-        rim.setStrokeWidth(2.5f*k);
+        // Keep the existing layer and layout bounds so navigation/drawer geometry is unchanged.
     }
 
     /** The quotes row's text and sizes, for one set of coins, prices and text size. */
@@ -1286,7 +1274,36 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
         c.drawText(localStatus,CONTENT_R*k-localStatusWidth,base,text);text.setColor(color);
     }
 
+    /** Cached radial gradients follow the existing focus springs; no timer or bitmap blur. */
+    private void drawDockGlow(Canvas c) {
+        for(int i=0;i<shelf.size();i++) {
+            float focus=Ui.clamp(tileFocus[i].value);
+            if(focus<.01f)continue;
+            String key=shelf.get(i).key;
+            Shader glow=dockGlows.get(key);
+            if(glow==null) {
+                int color;
+                switch(key) {
+                    case "netflix":color=0xFFE50914;break;
+                    case "youtube":color=0xFFFF0033;break;
+                    case "prime":color=0xFF1A98FF;break;
+                    case "hotstar":color=0xFF7763F6;break;
+                    case "crunchyroll":color=0xFFF47521;break;
+                    default:int[] style=TILE_STYLE.get(key);color=style==null?0xFFB8C0CC:style[0];
+                }
+                glow=new RadialGradient(0,0,1,new int[]{color,(color&0x00FFFFFF)|0x66000000,color&0x00FFFFFF},
+                        new float[]{0,.45f,1},Shader.TileMode.CLAMP);
+                dockGlows.put(key,glow);
+            }
+            RectF slot=tileRects[i];
+            dockGlowPaint.setShader(glow);dockGlowPaint.setAlpha(Math.round(tone(48f,66f)*focus));
+            c.save();c.translate(slot.centerX(),slot.centerY()+10*k);c.scale(240*k,90*k);
+            c.drawCircle(0,0,1,dockGlowPaint);c.restore();
+        }
+    }
+
     private void drawTiles(Canvas c) {
+        drawDockGlow(c);
         // The focused one last: it grows over its neighbors without being covered by them.
         int top = -1;
         float most = 0.02f;
@@ -1317,64 +1334,24 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
         }
     }
 
-    /**
-     * App icon like the ones in the tvOS 27 Dock: the brand color edge to edge (a soft gradient) with the logo.
-     * Focused: it grows 20% from the center, with a deep shadow (it "rises" toward the viewer) and a subtle glow at the
-     * top. No border and no reflection, as Apple does it.
-     */
+    /** White logos only, retaining the existing dock slots and focus/reorder motion. */
     private void drawShelfTile(Canvas c, int i) {
-        HomeApps.Item it = shelf.get(i);
-        // Lifted to be moved: a little bigger than focused, with a deeper shadow.
-        float l = i == liftIndex ? Math.max(0, moveLift.value) : 0;
-        float f = tileFocus[i].value, fc = Ui.clamp(f), s = 1 + FOCUS_GROW * f + LIFT_GROW * l;
-        RectF base = tileRects[i];
-        float bw = base.width(), bh = base.height(), r0 = TILE_RADIUS * k;
-        float cx = base.centerX(), cy = base.centerY();
-        cell.set(cx - bw * s / 2, cy - bh * s / 2, cx + bw * s / 2, cy + bh * s / 2);
-        float r = r0 * s;
-        // Shadow at the resting icon size, enlarged by the transform (so the blur stays cached): short at rest, deep
-        // and lower when focused.
-        c.save();
-        c.translate(cx, cy);
-        c.scale(s, s);
-        tmp.set(-bw / 2, -bh / 2, bw / 2, bh / 2);
-        tmp.offset(0, (4 + 14 * f + 6 * l) * k);
-        shadowDeep.setColor(Ui.alpha(0xFF000000, tone(0.14f, 0.3f) + tone(0.18f, 0.3f) * fc + 0.14f * Ui.clamp(l)));
-        shadows.draw(c, tmp, r0, DEEP_BLUR * k, shadowDeep);
-        c.restore();
-        int[] style = TILE_STYLE.get(it.key);
-        if (it.logo != null && style != null) {
-            if (tileShaders.length != shelf.size() || tileShaderH != bh) {
-                tileShaders = new LinearGradient[shelf.size()];
-                tileShaderH = bh;
-                tileGlow = new LinearGradient(0, -bh / 2, 0, 0, 0x14FFFFFF, 0x00FFFFFF, Shader.TileMode.CLAMP);
-            }
-            if (tileShaders[i] == null) {
-                tileShaders[i] = new LinearGradient(0, -bh / 2, 0, bh / 2, style[0], style[1], Shader.TileMode.CLAMP);
-            }
-            c.save();
-            c.translate(cx, cy);
-            c.scale(s, s);
-            tmp.set(-bw / 2, -bh / 2, bw / 2, bh / 2);
-            tileFill.setShader(tileShaders[i]);
-            tileFill.setAlpha(255);
-            c.drawRoundRect(tmp, r0, r0, tileFill);
-            if (fc > 0.01f) {
-                tileFill.setShader(tileGlow);
-                tileFill.setAlpha(Math.round(255 * fc));
-                c.drawRoundRect(tmp, r0, r0, tileFill);
-                tileFill.setAlpha(255);
-            }
-            tileFill.setShader(null);
-            c.restore();
-            drawLogo(c, it, cell, s, style[2]);
-        } else if (it.logo != null) {
-            tileFill.setShader(null);
-            tileFill.setColor(0xFF161618);
-            c.drawRoundRect(cell, r, r, tileFill);
-            drawLogo(c, it, cell, s, 0);
-        } else {
-            if (it.tile != null) roundImage(c, it.tile, cell, r);
+        HomeApps.Item it=shelf.get(i);
+        float lift=i==liftIndex?Math.max(0,moveLift.value):0;
+        float scale=1+FOCUS_GROW*tileFocus[i].value+LIFT_GROW*lift;
+        RectF base=tileRects[i];
+        cell.set(base.centerX()-base.width()*scale/2,base.centerY()-base.height()*scale/2,
+                base.centerX()+base.width()*scale/2,base.centerY()+base.height()*scale/2);
+        if(it.logo!=null) drawLogo(c,it,cell,scale,1);
+        else {
+            // An app without extractable transparent artwork remains usable without an opaque banner tile.
+            Paint text=lCardMeta;
+            int color=text.getColor();Paint.Align align=text.getTextAlign();
+            text.setColor(WHITE);text.setTextAlign(Paint.Align.CENTER);
+            fitPaint.set(text);
+            String label=TextUtils.ellipsize(it.label,fitPaint,cell.width()*.9f,TextUtils.TruncateAt.END).toString();
+            c.drawText(label,cell.centerX(),cell.centerY()-(text.ascent()+text.descent())/2,text);
+            text.setColor(color);text.setTextAlign(align);
         }
     }
 
@@ -1430,8 +1407,10 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
         }
         tmp.set(left, top, left + dw, top + dh);
         bitmapPaint.setColorFilter(mode == 1 ? whiteLogo : null);
+        // A small glyph-only shadow keeps the white marks readable in the existing Light theme.
+        if(mode==1)bitmapPaint.setShadowLayer(3*k,0,1*k,tone(0x99000000,0x66000000));
         c.drawBitmap(logo, null, tmp, bitmapPaint);
-        bitmapPaint.setColorFilter(null);
+        bitmapPaint.clearShadowLayer();bitmapPaint.setColorFilter(null);
     }
 
     private Bitmap crispLogo(HomeApps.Item it, boolean dark, boolean rest) {
@@ -2718,7 +2697,7 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
 
     /** The three cards of the current tab (Explore, Movies, Shows) and the background taken from the first one. */
     private void updateCards() {
-        // Home centre is personal, app-scoped history. Recs continues to supply the unchanged movie screensaver.
+        // Home centre is personal, app-scoped history. Saved artwork also supplies the cinematic screensaver.
         cards = java.util.Collections.emptyList();
         syncSelectedApp();
         updateHistoryBackdrop();
@@ -2777,7 +2756,7 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
         String app=selectedShelfLabel();
         c.drawText(app, MARGIN*k-Ui.leftBearing(lTitle,app),L_TITLE_BASE*k,lTitle);
         lTabOn.setColor(tone(L_DIM,0xD9FFFFFF));
-        c.drawText("Continue Watching",MARGIN*k,(L_TABBAR_TOP+L_TABBAR_H/2)*k+Ui.halfCap(lTabOn),lTabOn);
+        c.drawText("Watch History",MARGIN*k,(L_TABBAR_TOP+L_TABBAR_H/2)*k+Ui.halfCap(lTabOn),lTabOn);
         continueRow.draw(c,night>0.5f,zone==Z_CONTINUE?continueIndex:-1);
         drawLocalStatus(c);
     }
@@ -2876,35 +2855,20 @@ final class HomeView extends ViewGroup implements Choreographer.FrameCallback, H
         }
     }
 
-    /**
-     * Live TV, HDMI Inputs and Settings: icon-only glass circles (light by day, smoked at night); the focused one turns
-     * white with a dark icon (the tvOS focus) and its name appears below it.
-     */
+    /** Bare top icons retain their existing actions, hit areas and focus labels. */
     private void drawLightButtons(Canvas c) {
         applyTone();
-        for (int i = 0; i < 3; i++) {
-            RectF r = topRects[3 + i];
-            float f = Ui.clamp(topFocus[3 + i].value), s = 1 + 0.1f * f, rad = r.width() / 2 * s;
-            cell.set(r.centerX() - rad, r.centerY() - rad, r.centerX() + rad, r.centerY() + rad);
-            tmp.set(cell);
-            tmp.offset(0, (6 + 8 * f) * k);
-            shadow.setColor(Ui.alpha(0xFF000000, tone(0.1f, 0.3f) + tone(0.14f, 0.2f) * f));
-            shadows.draw(c, tmp, rad, SHADOW_BLUR * k, shadow);
-            scene.liquid(c, cell, rad, tone(0xFFFFFFFF, SMOKE), tone(0.55f, 0.5f), tone(0.02f, 0.01f), 12 * k, 8 * k,
-                    tone(0.6f, 0.45f), 1 - f);
-            if (f > 0.01f) {
-                fill.setShader(null);
-                fill.setColor(Ui.alpha(0xFFFFFFFF, f));
-                c.drawCircle(cell.centerX(), cell.centerY(), rad, fill);
-            }
-            Symbols.draw(getContext(), c, lightButtons.get(i).symbol, cell.centerX(), cell.centerY(), 27 * k * s,
-                    blend(tone(L_INK, 0xEBFFFFFF), L_INK, f));
-            if (f > 0.01f) {
-                String label = lightButtons.get(i).label;
-                float half = lTip.measureText(label) / 2;
-                float x = Math.min(r.centerX(), CONTENT_R * k - half);
-                lTip.setAlpha(Math.round(255 * f));
-                c.drawText(label, x, r.bottom + (40 + 4 * f) * k, lTip);
+        for(int i=0;i<3;i++) {
+            RectF r=topRects[3+i];
+            float focus=Ui.clamp(topFocus[3+i].value),scale=1+.2f*focus;
+            Symbols.draw(getContext(),c,lightButtons.get(i).symbol,r.centerX(),r.centerY(),27*k*scale,
+                    tone(L_INK,0xEBFFFFFF));
+            if(focus>.01f) {
+                String label=lightButtons.get(i).label;
+                float half=lTip.measureText(label)/2;
+                float x=Math.min(r.centerX(),CONTENT_R*k-half);
+                lTip.setAlpha(Math.round(255*focus));
+                c.drawText(label,x,r.bottom+(40+4*focus)*k,lTip);
             }
         }
     }

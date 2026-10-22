@@ -38,7 +38,7 @@ public class StandByActivity extends Activity {
         }
         return super.dispatchKeyEvent(event);
     }
-    private static final class ClockView extends View implements HomeData.Listener {
+    static final class ClockView extends View implements HomeData.Listener {
         private final Handler handler = new Handler(Looper.getMainLooper());
         private final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final HomeData data;
@@ -49,7 +49,8 @@ public class StandByActivity extends Activity {
         private final Runnable tick = new Runnable() { public void run() { if (!running) return; data.refreshIfStale(); invalidate(); handler.postDelayed(this, 1000); } };
         ClockView(Context c) {
             super(c); data = HomeData.get(c); layout = c.getSharedPreferences("hybrid_ui", 0).getString("standby_layout", "clock_calendar");
-            setFocusable(true); setContentDescription("StandBy. Press Back or Select to return."); setOnClickListener(v -> ((Activity)c).finish());
+            setFocusable(true); setContentDescription("StandBy. Press Back or Select to return.");
+            if(c instanceof Activity)setOnClickListener(v -> ((Activity)c).finish());
         }
         void start() { if (running) return; running = true; data.addListener(this); handler.post(tick); }
         void stop() { running = false; handler.removeCallbacks(tick); data.removeListener(this); }

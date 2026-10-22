@@ -1,4 +1,32 @@
-# Device verification — 22 October 2026
+# OpenTVOS 1.2.2 verification — 22 October 2026
+
+The maintained `main` app is `hybrid/`, Android package `io.freemytv`, public label OpenTVOS, version code **10**, version **1.2.2**. The exact final key-free APK was installed on the Xiaomi Fire TV (Fire OS 8 / Android 11, ARM32); its installed SHA-256 was read back and matched the release file. Home was left open before GitHub publication, and subsequent work did not operate the TV.
+
+## Current changes and checks
+
+- White floating wordmarks, the original dock geometry and 20% focus growth, brand-colour focus glow and bare top-right icons are now the main design. Safe current screenshots are in `docs/screenshots/`.
+- Removed the 15-title and 14-day retention cutoffs. Completed titles remain available. Readable TV-app playback sessions and Watch Next CONTINUE entries join explicit Netflix Continue Watching notifications. No private account-wide history is imported, no recommendations become history, and old discarded records cannot be recovered.
+- A signed temporary instrumentation harness injected **210 completed records across three app packages**, aged them over a year, persisted them, then ran again in a fresh process. Both seed and restore phases passed 425 assertions; cleanup passed and retained the pre-existing archive. All fixtures and the temporary test package were removed. Artwork residency stayed at eight bitmaps; background residency stays at three. Metadata and disk artwork still consume storage as history grows.
+- **22 host history/artwork-policy checks**, **8 Prime artwork parser checks** (including a real public Prime title page), **17 Indian AQI checks**, and **10 control-icon geometry checks** passed. The old retention implementation failed the new year-old-history regression before the fix.
+- Prime's real landscape hero is selected from its public title page instead of the tiny `og:image` poster. The TV fetched a 1440-pixel-wide source and saved a bounded 1280×720 image. Netflix retained its original 871×490 published background: card sharpness uses actual display/card dimensions, so it is no longer incorrectly blurred by a fixed 900-pixel threshold. Actual Netflix and Prime Home cards were visually inspected. Truly tiny images use a full-size soft backdrop instead of a small inset; missing original detail is not reconstructed.
+- The cinematic screensaver uses saved watched-title artwork without TMDB/Watchmode keys. The current TV showed successive Netflix slides; Prime artwork was also verified in the same renderer. Pan, zoom, crossfade, title/caption and clock remain. Original source resolution still limits fullscreen sharpness. Tiny icons and portrait posters are excluded.
+- With no suitable image, the screensaver embeds the same StandBy clock/calendar renderer, including digital time. The installed `DreamView` no-image branch was rendered on the device and visually inspected. Aurora is no longer the fallback. This branch test used a temporary signed test harness; it did not erase real history.
+- **35 live Control Centre/navigation assertions passed on the v1.2.2 build**, covering repeated StandBy → Back → immediate arrows, icon/caption centring, Light/Dark/Automatic, profile, settings, screensaver preview and Menu/gear entry. The final follow-up only widened screensaver eligibility to include Netflix's 871-pixel backgrounds; its slideshow/exit was then checked separately. No network, Bluetooth or native setting configuration was changed. The earlier 21 native destination checks are recorded below; they were not repeated for this artwork-only follow-up.
+- Android's static Home launch-window background is now black. Warm and cold Home-activity entries were recorded and their resumed component verified. Analysis of 934 recorded frames found no near-fullscreen white frame. This does not establish every possible physical-remote/OEM-helper transition; no helper or factory launcher setting was changed.
+
+## Final artifact
+
+- File: `OpenTVOS-v1.2.2.apk`
+- Logical size: **1,257,454 bytes** (1.26 MB decimal / 1.20 MiB); one APK, no native libraries.
+- SHA-256: `0bb3353a7505783e894c8adee70f289bca7855c6ef2f433d36d05590c2d13c2d`
+- Signer SHA-256: `bbbadba6045bcf0bbc5beebbd7745abe4d53056d7bd1c93b0fe3cbbadb9ef76a`
+- Public build uses isolated blank catalogue credentials. Every uncompressed APK entry was scanned against configured private credentials; none was included. Signing verification passed. Private API configuration, signing keys, playback screenshots, device dumps and recordings are excluded from Git.
+
+The package remains small, but there is no new comparative performance benchmark for 1.2.2. Historical 1.2.1 performance measurements below should not be read as fresh measurements of this build. Testing covers this device and the named flows, not all streaming-app metadata, all firmware, overnight idle behaviour or the ability to import private provider histories.
+
+---
+
+# Earlier 1.2.1 verification — 22 October 2026
 
 Core implementation: `665026a`, followed by native settings routing fix `3be5dc2`. Package `io.freemytv`, final version code **6**, version **1.2.1-hybrid**. Tested on a Xiaomi Fire TV running Fire OS 8 / Android 11, ARM32, with an authorised wireless ADB connection.
 

@@ -4,17 +4,21 @@ This is the active `io.freemytv` home-screen fork. The repository root preserves
 
 ## Behaviour
 
-- Original Free My TV dock geometry, app order, navigation, lower drawer, blurred background engine, and movie/photo screensaver.
-- Glass dock highlights follow Light, Dark, and the existing location-based Automatic appearance.
-- Centred, horizontally browsable Continue Watching cards follow the selected dock app. Their artwork drives the original ambient background.
-- Netflix entries come from explicit Continue Watching notifications; Prime entries come from playback observed on this TV. Up to 15 incomplete entries per app are retained for 14 days. Other apps appear only if they publish readable Watch Next continuation entries.
+- Original Free My TV dock geometry, app order, navigation, lower drawer, blurred background engine, and cinematic movie/photo screensaver renderer.
+- White floating logos replace coloured tiles and the dock platter. Existing sizes/order and 20% focus growth are preserved; a cached radial brand-colour glow follows focus. Bare top-right icons retain their actions and focus labels. Light/Dark/Automatic appearance remains available.
+- Centred, horizontally browsable Watch History cards follow the selected dock app. Their artwork drives the original ambient background.
+- Netflix entries come from explicit Continue Watching notifications. Installed TV apps can also contribute readable playback sessions or Watch Next CONTINUE entries. Every observed title is saved without an app-imposed count or age cutoff, including completed titles, subject to device storage. Previously deleted or private account-wide history cannot be recovered.
 - This is observed device history, not the full streaming-account history. No recommendation is presented as a watched title. An unavailable resume action opens the app with an explanatory message.
-- Original provider artwork is preferred, decoding is bounded, and small thumbnails are kept at a sensible size rather than enlarged across the hero.
-- New right-side Settings and Control Centre (with tvOS emoji/gradient profile avatars, editable name, and a system photo picker): Light/Dark/Automatic, glass style, app shelf, local weather/AQI controls, native TV settings, and manual StandBy clock layouts. The default StandBy uses the recovered tvOS analog clock at left, digital time below it, and its calendar at right. The original automatic screensaver remains separate.
+- Original provider artwork URIs are preferred over small session icons. Prime uses the public landscape hero for its observed GTI. All cards retain full size; genuinely tiny sources use a deliberate soft backdrop instead of a miniature inset. Netflix's existing 871-pixel background remains sharp at the original card size. Decoding and resident bitmap counts stay bounded.
+- New right-side Settings and Control Centre (with tvOS emoji/gradient profile avatars, editable name, and a system photo picker): Light/Dark/Automatic, glass style, app shelf, local weather/AQI controls, native TV settings, and manual StandBy clock layouts. The default StandBy uses the recovered tvOS analog clock at left, digital time below it, and its calendar at right. The automatic screensaver retains its original clock, captions, pan and crossfade, using suitable saved watched-title images. With no suitable image it embeds the same StandBy widgets; it does not show the aurora.
+
+## Installation
+
+For a ready-made APK and remote-first setup, follow [Install OpenTVOS yourself](../docs/INSTALLATION.md). It covers USB/file-manager installation, Windows/macOS/Linux ADB, Android TV Home selection, Fire TV helper setup, notification access, personalisation, updates and restoration. No AI agent is required.
 
 ## Public APK and building
 
-Download the signed [v1.2.1 release](https://github.com/uphomesco-hub/opentvos/releases/tag/v1.2.1). It contains no TMDB or Watchmode key. Continue Watching, weather/AQI, controls and StandBy need no API signup. The original screensaver engine remains; optional TMDB movie artwork needs your own key in a locally configured build.
+Download the signed [v1.2.2 release](https://github.com/uphomesco-hub/opentvos/releases/tag/v1.2.2). It contains no TMDB or Watchmode key. Continue Watching, weather/AQI, controls and StandBy need no API signup. The screensaver uses saved watched-title artwork and needs no catalogue key. Historical TMDB discovery code is retained for source compatibility, but the current screensaver does not use it.
 
 Use Python 3, JDK 17+, Android SDK platform 36/build-tools 36, then run from this directory:
 
@@ -22,9 +26,9 @@ Use Python 3, JDK 17+, Android SDK platform 36/build-tools 36, then run from thi
 python3 build_public.py
 ```
 
-This builds `dist/OpenTVOS-v1.2.1.apk` and its SHA-256 checksum in an isolated temporary directory, using blank catalogue credentials and Delhi defaults. It does not read your local `config.properties`. Keep the generated `freemytv.keystore` privately for updates. If you have no existing key, the build creates one.
+This builds `dist/OpenTVOS-v1.2.2.apk` and its SHA-256 checksum in an isolated temporary directory, using blank catalogue credentials and Delhi defaults. It does not read your local `config.properties`. Keep the generated `freemytv.keystore` privately for updates. If you have no existing key, the build creates one.
 
-For your own optional movie artwork configuration, copy `config.example.properties` to `config.properties`, configure locally, then run `bash build.sh`. That produces the private `FreeMyTV.apk`; never publish an APK compiled with personal API credentials. Generated settings, signing keys, output and APKs are ignored by Git.
+For local location/language defaults, copy `config.example.properties` to `config.properties`, configure locally, then run `bash build.sh`. That produces `FreeMyTV.apk`. Leave catalogue keys empty: the current history/screensaver flow needs none. Never publish an APK compiled with personal API credentials. Generated settings, signing keys, output and APKs are ignored by Git.
 
 Both builds use application ID `io.freemytv`, minimum Android 9 / API 28. Updates require the original signing key. `adb install -r APK_PATH` retains preferences when the signing identity matches; it does not assign Home or enable notification access.
 
@@ -43,7 +47,7 @@ Wi-Fi opens native Network settings; Bluetooth opens native Remotes & Bluetooth 
 
 ## Verification
 
-Host tests: compile `WatchHistoryPolicy.java`, `IndianAqi.java`, and `tests/*.java` with javac; run both test classes in the `io.freemytv` package. Live TV verification is recorded separately after installation.
+Host tests: compile `WatchHistoryPolicy.java`, `PrimeArtwork.java`, `IndianAqi.java`, and `tests/*.java` with javac; run `WatchHistoryPolicyTest`, `PrimeArtworkTest`, and `IndianAqiTest` in the `io.freemytv` package. Live TV verification is recorded separately after installation.
 
 ## Rollback
 

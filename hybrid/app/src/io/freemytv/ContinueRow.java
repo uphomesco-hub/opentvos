@@ -38,10 +38,12 @@ final class ContinueRow {
             ContinueWatching.Item item=items.get(i);
             titles[i]=TextUtils.ellipsize(item.title==null?"":item.title,fit,(WIDTH-68)*k,TextUtils.TruncateAt.END).toString();
             fit.set(subtitle);subtitles[i]=TextUtils.ellipsize(item.subtitle==null?"":item.subtitle,fit,(WIDTH-68)*k,TextUtils.TruncateAt.END).toString();fit.set(title);
-            if(item.art!=null&&!item.art.isRecycled())shaders[i]=new BitmapShader(item.art,Shader.TileMode.CLAMP,Shader.TileMode.CLAMP);
+            Bitmap display=item.softArt!=null?item.softArt:item.art;
+            if(display!=null&&!display.isRecycled())shaders[i]=new BitmapShader(display,Shader.TileMode.CLAMP,Shader.TileMode.CLAMP);
         }
+        ContinueWatching.prepare(items,selected);
     }
-    void select(int index,boolean snap){selected=Math.max(0,Math.min(index,Math.max(0,count()-1)));position.target=selected;if(snap)position.snap(selected);}
+    void select(int index,boolean snap){selected=Math.max(0,Math.min(index,Math.max(0,count()-1)));position.target=selected;if(snap)position.snap(selected);ContinueWatching.prepare(items,selected);}
     boolean step(float dt){return position.step(dt);}
     float center(int i){return (960+(i-position.value)*STEP)*k;}
     void bounds(int i,RectF out){float cx=center(i);out.set(cx-WIDTH*k/2,(CY-HEIGHT/2)*k,cx+WIDTH*k/2,(CY+HEIGHT/2)*k);}
@@ -52,8 +54,10 @@ final class ContinueRow {
         for(int i=first;i<=last;i++)if(i!=selected)drawCard(c,i,dark,false);
         if(selected>=first&&selected<=last)drawCard(c,selected,dark,focused==selected);
         if(items.size()>1){
-            float total=(items.size()-1)*16*k,x=960*k-total/2;
-            for(int i=0;i<items.size();i++){fill.setShader(null);fill.setColor(i==selected?(dark?0xFFFFFFFF:0xFF303038):(dark?0x66FFFFFF:0x66303038));c.drawCircle(x+i*16*k,780*k,(i==selected?4:3)*k,fill);}
+            int dots=Math.min(7,items.size()),start=Math.max(0,Math.min(selected-3,items.size()-dots));
+            float total=(dots-1)*16*k,x=960*k-total/2;
+            for(int i=0;i<dots;i++){boolean active=start+i==selected;fill.setShader(null);fill.setColor(active?(dark?0xFFFFFFFF:0xFF303038):(dark?0x66FFFFFF:0x66303038));c.drawCircle(x+i*16*k,780*k,(active?4:3)*k,fill);}
+            if(items.size()>7){String count=(selected+1)+" / "+items.size();hint.setColor(dark?0xCCFFFFFF:0xFF55555F);c.drawText(count,960*k-hint.measureText(count)/2,821*k,hint);}
         }
     }
     private void drawCard(Canvas c,int i,boolean dark,boolean focused){
@@ -63,17 +67,9 @@ final class ContinueRow {
         fill.setShader(null);fill.setColor(dark?0xF02A2B32:0xED4A4D58);c.drawRoundRect(rect,radius,radius,fill);
         ContinueWatching.Item it=items.get(i);
         if(shaders[i]!=null&&it.art!=null&&!it.art.isRecycled()){
-            Bitmap bitmap=it.art;float cover=Math.max(rect.width()/bitmap.getWidth(),rect.height()/bitmap.getHeight());
-            if(cover<=1.15f){
-                matrix.setScale(cover,cover);matrix.postTranslate(rect.centerX()-bitmap.getWidth()*cover/2,rect.centerY()-bitmap.getHeight()*cover/2);
-                shaders[i].setLocalMatrix(matrix);image.setShader(shaders[i]);c.drawRoundRect(rect,radius,radius,image);
-            }else{
-                // Original thumbnails retain their detail: never stretch a 240px image across a 1000px hero.
-                float fit=Math.min(1.15f,Math.min((rect.width()-60*k)/bitmap.getWidth(),(rect.height()-135*k)/bitmap.getHeight()));
-                float w=bitmap.getWidth()*fit,h=bitmap.getHeight()*fit;
-                art.set(rect.centerX()-w/2,rect.top+28*k+(rect.height()-135*k-h)/2,rect.centerX()+w/2,rect.top+28*k+(rect.height()-135*k+h)/2);
-                matrix.setScale(fit,fit);matrix.postTranslate(art.left,art.top);shaders[i].setLocalMatrix(matrix);image.setShader(shaders[i]);c.drawRoundRect(art,16*k,16*k,image);
-            }
+            Bitmap bitmap=it.softArt!=null?it.softArt:it.art;float cover=Math.max(rect.width()/bitmap.getWidth(),rect.height()/bitmap.getHeight());
+            matrix.setScale(cover,cover);matrix.postTranslate(rect.centerX()-bitmap.getWidth()*cover/2,rect.centerY()-bitmap.getHeight()*cover/2);
+            shaders[i].setLocalMatrix(matrix);image.setShader(shaders[i]);c.drawRoundRect(rect,radius,radius,image);
             image.setShader(null);
         }
         // Shared vertical scrim is cached outside drawing; carousel movement is horizontal.

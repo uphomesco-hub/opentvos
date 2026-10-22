@@ -1,77 +1,51 @@
 # OpenTVOS
 
-A compact Android TV / Fire TV launcher with a cinematic home screen, glass controls and app-specific Continue Watching. Fire OS or Android TV still runs underneath.
+A compact Android TV / Fire TV launcher with floating white app logos, a soft brand-colour focus glow, bare top-right controls and an app-specific watch-history carousel. Your TV's operating system still runs underneath it.
 
-**[Download OpenTVOS v1.2.1](https://github.com/uphomesco-hub/opentvos/releases/tag/v1.2.1)** · [Build and setup](hybrid/README.md) · [Device verification](hybrid/VERIFICATION.md)
+**[Download OpenTVOS 1.2.2](https://github.com/uphomesco-hub/opentvos/releases/tag/v1.2.2)** · **[Install it yourself — no AI agent needed](docs/INSTALLATION.md)** · [Build from source](hybrid/README.md) · [TV verification](hybrid/VERIFICATION.md)
 
-The maintained app is in **[hybrid/](hybrid/)**. It preserves Free My TV's dock and background engine and adds:
+## The main app
 
-- A centred Continue Watching carousel for the selected favourite app, using playback metadata shared on this TV.
-- Compact tvOS-style Control Centre, profile avatars/photo picker, remote navigation and native TV settings shortcuts.
-- Light, Dark and sunrise/sunset Automatic appearance, including glass surfaces.
-- Delhi weather, estimated Indian-scale AQI and local time; location is configurable.
-- StandBy with an analog clock, digital time and calendar, plus four other layouts.
-- The original movie/photo screensaver engine.
+**This design is the maintained version on `main`.** Its source is in [hybrid/](hybrid/); the Android package is `io.freemytv` and the public app is labelled **OpenTVOS**. The older `Yash TV` / original `tvOS` experiments are separate apps and are not the current release APK.
 
-**No account or API key is needed for the main launcher, local Continue Watching, weather/AQI, controls or StandBy.** The downloadable APK contains no private catalogue keys. Optional TMDB movie artwork requires your own configuration when building; it is not bundled into this public release. Continue Watching is shared device history, not a complete Netflix/Prime account history; empty apps show the clock/weather fallback.
+- White logos float directly over the existing blurred artwork. There are no dock tiles or shared background strip.
+- The focused logo grows by 20%, with a soft glow in its brand colour. The three top-right icons are bare and enlarge on focus.
+- A centred Watch History carousel follows the selected dock app; its artwork drives the ambient background. Saved observations have no title-count or age cutoff, including completed titles.
+- Compact tvOS-style Control Centre, profile avatars/photo picker, native settings shortcuts and remote navigation.
+- Light, Dark and location-based sunrise/sunset Automatic appearance. The requested white dock-logo treatment is retained in both modes.
+- Configurable weather and estimated Indian-scale AQI. Delhi / IST defaults; the clock time zone remains IST in this release.
+- Manual StandBy with analog clock + digital time + calendar, plus four other layouts; the cinematic photo screensaver now uses saved watched-title artwork. If no suitable image exists it displays the same StandBy widgets.
+
+**Core features need no OpenTVOS account or movie API key.** The release APK contains no personal TMDB/Watchmode credentials. Watch history and screensaver images use metadata/artwork shared on this device, including public Prime landscape artwork for observed titles. No full streaming-account history is imported; empty apps show an explanatory placeholder.
 
 ## Screenshots
 
-Actual Fire TV captures, not mockups. Screenshots below show this release's controls, themes and default StandBy layout.
+Actual captures from the current public APK on a Fire TV. Personal watch history, account details and network names are excluded.
 
+![Current home with white floating logos and focus glow](hybrid/docs/screenshots/home-current.png)
+![Bare top-right Settings icon focused](hybrid/docs/screenshots/top-icons-current.png)
 ![Dark Control Centre](hybrid/docs/screenshots/controls-dark.png)
 ![Light Control Centre](hybrid/docs/screenshots/controls-light.png)
-![Analog clock, digital time and calendar in StandBy](hybrid/docs/screenshots/standby.png)
+![Clock, digital time and calendar in StandBy](hybrid/docs/screenshots/standby.png)
 
-## Install
+## Install on another TV
 
-Android 9 / API 28 or newer. Sideload the APK, then launch OpenTVOS from Apps. Installation alone does not assign the Home button. Fire TV may need a compatible Home-button helper and device-side ADB approval; available methods depend on Fire OS. Enable notification access for OpenTVOS to collect shared Continue Watching metadata. Existing streaming subscriptions/logins remain in their apps.
+1. Check **Android TV / Google TV with Android 9+**, or a compatible Android-based Fire TV. This APK does not run on Samsung Tizen, LG webOS, Apple tvOS or Vega OS.
+2. Download **`OpenTVOS-v1.2.2.apk`** from [release Assets](https://github.com/uphomesco-hub/opentvos/releases/tag/v1.2.2).
+3. Transfer it to the TV, allow installation for your file manager/download app, and open the APK to install it. A computer/ADB alternative is documented too.
+4. Open **OpenTVOS** from Apps, then configure Home separately: use Android's Home chooser or a compatible Fire TV helper.
+5. Enable notification access for shared Continue Watching, then choose your favourites, appearance and location with the remote.
 
-The application ID is `io.freemytv`. An update over another Free My TV build requires the same signing key. Back up your APK and preferences before changing installations; this repository does not install or remove packages automatically.
+**[Follow the complete installation steps, commands and troubleshooting guide](docs/INSTALLATION.md).** No source build or AI agent is required. Home-button rules vary by firmware; keep the factory launcher installed.
 
-Source code, documentation and screenshots are public. Signing keys, personal configuration, API credentials and private playback evidence are excluded. Release APKs are attached to GitHub Releases.
+Updates require the same signing identity as the existing `io.freemytv` installation. A different Free My TV build can cause a signature conflict; uninstalling it deletes app data. See the guide before changing an existing setup.
 
-## Earlier tvOS-based experiment
+## Source and releases
 
-The root source and build script below preserve the earlier standalone experiment. They are separate from the current `io.freemytv` hybrid.
+- [hybrid/app/](hybrid/app/): current Android Java/resources.
+- [hybrid/build_public.py](hybrid/build_public.py): builds the public APK in isolation with blank catalogue keys and a manifest-derived versioned filename.
+- [hybrid/README.md](hybrid/README.md): developer build, private configuration and regression checks.
+- [hybrid/VERIFICATION.md](hybrid/VERIFICATION.md): tested device, checks and limits.
+- [Earlier reverse-engineered tvOS experiment](docs/LEGACY-TVOS.md): preserved root `src/`, `base/`, `reference/` and older build tools. Build the current app from **hybrid**, not the repository-root `build.py`.
 
-Maintainable modifications of the supplied tvOS Launcher 0.5 beta. Keeps its existing hero artwork, favourite dock, app grid, glass menus and settings renderer. Fire OS continues to run underneath, as it also does with Free My TV.
-
-## Changes
-
-- Navigation skips invisible favourite placeholders and retries focus after layout. Empty and partly filled docks work.
-- Continue Watching combines Android TV provider entries with Netflix's explicitly published Continue Watching notifications and locally observed Netflix/Prime media sessions. History is bounded to 15 titles per app and expires after 14 days.
-- If no history/provider row exists for Netflix or Prime, **Discover · TVmaze** shows recent public streaming TV releases. No viewer account or API key is required. Discovery is visibly distinct from personal history, has no fake progress and does not replace real rows.
-- Delhi defaults, a compact temperature / estimated Indian AQI / IST chip, and the original automatic sunset-to-sunrise theme. Native location and appearance settings remain available.
-- A **Yash TV features** entry in Settings explains data sources and opens notification-access setup.
-- Separate package `com.yash.tvlauncher`; both `com.sid.tvos` and `io.freemytv` remain available as backups. No app removal or OS replacement is part of this project.
-
-## Source layout
-
-- `src/com/sid/tvos/`: maintained Java for the new features and fixes.
-- `base/`: complete decoded original resources and executable Smali base with narrow integration hooks. The class namespace remains `com.sid.tvos` so original rendering and resource identities are preserved; the installed application ID is separate.
-- `reference/java/`: all 315 top-level Java files recovered from the original APK with JADX/REA. Decompiled reference code is not treated as compilable original source.
-- `tools/apply_base_patches.py`: reproducible, idempotent hook installation.
-- `build.py`: compile new Java, generate DEX, merge with and validate the full Smali base, run tests, optionally package/sign.
-- `tests/`: focus, playback provenance/expiry, catalogue precedence/link validation, AQI averaging/cache and native theme checks, plus integration/ABI contracts.
-
-## Build and verify
-
-Needs Python3, a full JDK17+, Android SDK platform/build-tools (tested: Android36/build-tools36.0.0). Set `JAVA_HOME` and `ANDROID_HOME` if not in the macOS paths used by the default script. No Gradle or catalogue keys are required. Apktool 3.0.3 is downloaded only if absent and checked against its release SHA-256.
-
-```sh
-python3 build.py verify  # Java + complete merged DEX + host tests; no APK
-python3 build.py apk     # same checks, then produces YashTV.apk
-```
-
-The first APK build creates a local signing key and random password under ignored `.keys/`. Preserve that directory securely for future updates. It is not committed. APKs, build outputs, local config and credentials are ignored.
-
-After installing, launch `com.yash.tvlauncher/com.sid.tvos.MainActivity`. Previewing does not change the TV's default Home handler. Notification access is optional and must be enabled for this app once to capture playback metadata; catalogue discovery and weather do not need it. Enabling notification access does not require a streaming login or API signup. Installation/Home assignment are separate actions; the build script performs neither.
-
-## Boundaries
-
-Netflix's full account-wide viewing history is not exposed to this app. Only published items and future observable sessions can become local history. Expired Netflix launch actions visibly fall back to opening Netflix. Prime stable content IDs can open its Resume page; artwork/title enrichment is optional. Catalogue discovery currently covers recent **TV shows**, not a complete movie library, personalized ranking or verified Indian subscription availability. Opening a discovery card explains its source and availability, then offers an app link/search.
-
-AQI (IN est.) is calculated from modelled pollutant concentrations using Indian averaging windows and breakpoints. It is not an official live CPCB station reading. Missing/stale data is labelled or withheld, never displayed as zero. Weather defaults to Delhi and follows changes made in native Weather settings.
-
-See [data sources](docs/DATA-SOURCES.md), [provenance and third-party notices](docs/PROVENANCE.md), [local features](docs/LOCAL_FEATURES.md), and [debug report](docs/DEBUG-REPORT.md). The original APK base's rights are not relicensed by this repository.
+Release APKs and checksums are attached to GitHub Releases. Signing keys, personal configuration, API credentials and private device evidence are excluded from Git. Upstream Free My TV's [MIT license](hybrid/LICENSE) and [third-party provenance](docs/PROVENANCE.md) are preserved.

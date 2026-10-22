@@ -37,7 +37,7 @@ import java.util.concurrent.Executors;
  *    through the digits, bent at the edges; Shaders.GLASS_TEXT) and the compact prices;
  *  - bottom left, the photo's caption: the time-of-day label ("TONIGHT"), the title, and genre · runtime · service.
  * Dark scrims only where there is text, stronger where the photo is bright. Any key exits (as on Apple TV).
- * Without photos (no TMDB key, or before the first fetch): the big clock over the night aurora.
+ * Saved watched-title artwork needs no API key. Without suitable photos: the same StandBy widgets.
  */
 final class DreamView extends View implements Choreographer.FrameCallback, HomeData.Listener, Recs.Listener {
     private static final long SHOW_MS = 30_000, FADE_MS = 3_000, FIRST_MS = 1_600;
@@ -93,7 +93,7 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
         }
     }
 
-    private final Scene scene = new Scene(false);
+    private final StandByActivity.ClockView standby;
     private final HomeData data;
     private final Recs recs;
     private final Handler handler = new Handler(Looper.getMainLooper());
@@ -108,6 +108,7 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
     private final Paint shadowPaint = new Paint(Paint.FILTER_BITMAP_FLAG);
     private final Paint glassPaint = new Paint();
     private final Set<String> failed = new HashSet<>();     // Recs.key: a movie and a series can have the same ID
+    private List<Recs.Pick> watched = java.util.Collections.emptyList();
     private RuntimeShader glassShader;
     private boolean running, dirty = true, chromeDirty = true;
     private boolean fallback;       // the aurora with the clock (no photos)
@@ -142,9 +143,7 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
         super(c);
         data = HomeData.get(c);
         recs = Recs.get(c);
-        Shaders.dream(scene.palette);
-        scene.setMotion(0.4f, 0.32f);
-        scene.applyPalette();
+        standby = new StandByActivity.ClockView(c);
         content.setUseCompositingLayer(true, null);
         try {
             glassShader = new RuntimeShader(Shaders.GLASS_TEXT);
@@ -160,16 +159,23 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
     void start() {
         if (running) return;
         running = true;
+        standby.start();
         if (worker.isShutdown()) worker = Executors.newSingleThreadExecutor();
         startedAt = clock();
         lastFrame = 0;
         failed.clear();
-        fallback = recs.showcase().isEmpty();
+        watched = java.util.Collections.emptyList();
+        fallback = true;
+        final int startGeneration = generation;
+        worker.execute(() -> {
+            List<Recs.Pick> saved = WatchedSlides.load(getContext());
+            handler.post(() -> {
+                if (!running || generation != startGeneration) return;
+                watched = saved;prepareNext();
+            });
+        });
         data.addListener(this);
-        recs.addListener(this);
         data.refreshIfStale();
-        recs.refreshIfStale();
-        recs.prefetchAll();
         prepareNext();
         handler.postDelayed(tick, 60_000);
         Choreographer.getInstance().postFrameCallback(this);
@@ -179,12 +185,12 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
     void stop() {
         if (!running) return;
         running = false;
+        standby.stop();
         generation++;
         decoding = false;
         Choreographer.getInstance().removeFrameCallback(this);
         handler.removeCallbacks(tick);
         data.removeListener(this);
-        recs.removeListener(this);
         // The photos stay in GPU memory until the garbage collector runs: release them now (after the last frame).
         final java.util.Set<Bitmap> gone = new java.util.HashSet<>();
         for (Slide s : new Slide[] {current, incoming, prepared}) {
@@ -218,7 +224,7 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
         w = width;
         h = height;
         k = w / 1920f;
-        scene.setSize(w, h);
+        standby.layout(0,0,w,h);
         content.setPosition(0, 0, w, h);
         chrome.setPosition(0, 0, w, h);
         // Without photos (the clock over the aurora).
@@ -257,7 +263,7 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
     /** Loads the next photo in the background (one at a time); once ready, it comes in at the right moment. */
     private void prepareNext() {
         if (!running || decoding || prepared != null) return;
-        List<Recs.Pick> list = recs.showcase();
+        List<Recs.Pick> list = watched;
         if (list.isEmpty()) return;
         Slide last = incoming != null ? incoming : current;
         int start = 0;
@@ -283,7 +289,7 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
             prepared = newSlide(pick, last.image, last.frost, last.lightCaption, last.lightClock);
             return;
         }
-        File file = recs.readyImage(pick);
+        File file = pick.localArt != null ? new File(getContext().getFilesDir(),pick.localArt) : recs.readyImage(pick);
         if (file == null) {
             failed.add(Recs.key(pick));   // the image is gone from disk: try the next one
             prepareNext();
@@ -680,7 +686,7 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
                     .setIncludePad(false).build();
             float originY = titleBase - t.getLineBaseline(t.getLineCount() - 1);
             float capTop = originY + t.getLineBaseline(0) - Ui.cap(titlePaint);
-            c.drawText(Recs.periodLabel(), x, capTop - 30 * k, labelPaint);
+            c.drawText(s.pick.localArt != null ? "FROM YOUR WATCH HISTORY" : Recs.periodLabel(), x, capTop - 30 * k, labelPaint);
             c.save();
             c.translate(x - Ui.leftBearing(titlePaint, title), originY);
             t.draw(c);
@@ -716,29 +722,12 @@ final class DreamView extends View implements Choreographer.FrameCallback, HomeD
         }
     }
 
-    // MARK: - Without photos: the big clock over the aurora
+    // MARK: - Without suitable photos: the user's existing StandBy layout
 
     private void drawFallback(Canvas canvas, long up, float alpha) {
-        float t = (up - startedAt) / 1000f;
-        if (up - lastSky >= 100) {
-            lastSky = up;
-            scene.advance(timeOffset + t);
-        }
-        scene.drawBackground(canvas);
-        if (dirty) {
-            Canvas rc = content.beginRecording(w, h);
-            try {
-                drawContent(rc);
-            } finally {
-                content.endRecording();
-            }
-            dirty = false;
-        }
-        double phase = 2 * Math.PI * t / DRIFT_PERIOD_S;
-        content.setTranslationX((float) (40 * k * Math.sin(phase)));
-        content.setTranslationY((float) (26 * k * Math.sin(2 * phase + 0.7)));
-        content.setAlpha(alpha);
-        content.draw(canvas);
+        if(alpha>=0.999f){standby.draw(canvas);return;}
+        int saved=canvas.saveLayerAlpha(0,0,w,h,Math.round(255*alpha));
+        standby.draw(canvas);canvas.restoreToCount(saved);
     }
 
     private void drawContent(Canvas c) {

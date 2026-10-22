@@ -47,6 +47,7 @@ final class Recs {
         String kind;            // "movie" or "tv"
         String title, backdrop, meta = "", app, pkg;
         String link;            // opens the title in its app (looked up with Watchmode), or null: the app's home
+        String localArt;        // Private watched-title artwork; never a catalogue/network path.
         boolean detailed;
     }
 
@@ -379,7 +380,7 @@ final class Recs {
 
     /** Movies and shows are numbered separately on TMDB: a pick is identified by type + number. */
     static String key(Pick p) {
-        return p.kind + ":" + p.id;
+        return p.localArt != null ? "watched:" + p.localArt : p.kind + ":" + p.id;
     }
 
     private void notifyListeners() {

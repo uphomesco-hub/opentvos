@@ -13,15 +13,15 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.*;
 
-/** Notification access observes explicit Netflix history and Prime playback; no recommendation ingestion. */
+/** Notification access observes explicit Netflix history and TV-app playback; no recommendation ingestion. */
 public final class ContinueWatchingService extends NotificationListenerService {
     private final Handler main = new Handler(Looper.getMainLooper());
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private final Map<MediaController, MediaController.Callback> controllers = new HashMap<>();
     private MediaSessionManager sessions;
     private final MediaSessionManager.OnActiveSessionsChangedListener changed = this::observe;
-    private long lastCapture;
-    private String lastId;
+    private final Map<String,String> lastPlayback = new HashMap<>();
+    private final Map<String,Long> lastCapture = new HashMap<>();
     private final Runnable poll = new Runnable() {
         public void run() { for (MediaController c : new ArrayList<>(controllers.keySet())) capture(c);main.postDelayed(this, 60_000); }
     };
@@ -65,6 +65,7 @@ public final class ContinueWatchingService extends NotificationListenerService {
                     // Netflix's original background is materially sharper than its notification icon.
                     int[] original = new int[2];
                     it.art = WatchArtwork.content(this, n.extras.getString("android.backgroundImageUri"), original);
+                    it.providerArtUri = n.extras.getString("android.backgroundImageUri");
                     it.artSource = "Netflix published background";
                     if (it.art == null) try {
                         Icon icon = n.getLargeIcon();Drawable d = icon == null ? null : icon.loadDrawable(this);
@@ -84,7 +85,7 @@ public final class ContinueWatchingService extends NotificationListenerService {
     private void observe(List<MediaController> list) {
         for (Map.Entry<MediaController, MediaController.Callback> e : controllers.entrySet()) e.getKey().unregisterCallback(e.getValue());
         controllers.clear();if (list == null) return;
-        for (MediaController c : list) if ("com.amazon.firebat".equals(c.getPackageName())) {
+        for (MediaController c : list) if (eligible(c.getPackageName())) {
             MediaController.Callback callback = new MediaController.Callback() {
                 @Override public void onMetadataChanged(MediaMetadata m) { capture(c); }
                 @Override public void onPlaybackStateChanged(PlaybackState s) { capture(c); }
@@ -92,23 +93,41 @@ public final class ContinueWatchingService extends NotificationListenerService {
             controllers.put(c, callback);c.registerCallback(callback, main);capture(c);
         }
     }
+    private boolean eligible(String pkg) {
+        if (getPackageName().equals(pkg)) return false;
+        // Readable media sessions from installed, launchable TV apps only.
+        return getPackageManager().getLeanbackLaunchIntentForPackage(pkg) != null;
+    }
     private void capture(MediaController c) {
         try {
             MediaMetadata m = c.getMetadata();PlaybackState state = c.getPlaybackState();
             if (m == null || state == null || (state.getState() != PlaybackState.STATE_PLAYING && state.getState() != PlaybackState.STATE_PAUSED)) return;
             String id = m.getString("com.amazon.alexa.externalmediaplayer.metadata.PLAYBACK_SOURCE_ID");
-            if (!ContinueWatching.validPrimeId(id)) return;
-            long now = SystemClock.elapsedRealtime();
-            if (id.equals(lastId) && now - lastCapture < 5000 && state.getState() != PlaybackState.STATE_PAUSED) return;
-            lastId = id;lastCapture = now;
+            if (!ContinueWatching.validPrimeId(id)) id = m.getString(MediaMetadata.METADATA_KEY_MEDIA_ID);
             String title = m.getString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE);
             if (title == null || title.trim().isEmpty()) title = m.getString(MediaMetadata.METADATA_KEY_TITLE);
+            final long position = state.getPosition(), duration = m.getLong(MediaMetadata.METADATA_KEY_DURATION);
+            if (position <= 0 || duration <= 0 || title == null || title.trim().isEmpty()) return;
+            String pkg = c.getPackageName();
+            String label = getPackageManager().getApplicationLabel(getPackageManager().getApplicationInfo(pkg, 0)).toString();
+            if (title.trim().equalsIgnoreCase(label.trim())) return;
+            String fingerprint = String.valueOf(id) + ":" + title + ":" + position + ":" + duration;
+            long now = SystemClock.elapsedRealtime();Long previous = lastCapture.get(pkg);
+            if (fingerprint.equals(lastPlayback.get(pkg))) return;
+            if (previous != null && now - previous < 5000 && state.getState() != PlaybackState.STATE_PAUSED) return;
+            lastCapture.put(pkg, now);lastPlayback.put(pkg, fingerprint);
             Bitmap art = m.getBitmap(MediaMetadata.METADATA_KEY_ART);
             if (art == null) art = m.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART);
+            String uri = m.getString(MediaMetadata.METADATA_KEY_ART_URI);
+            if (uri == null) uri = m.getString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI);
+            if (uri == null) uri = m.getString(MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI);
+            // Media URI is the only framework field that explicitly identifies playback content.
+            // A plain media ID is not assumed to be a launchable URL.
+            final String launchUri = m.getString(MediaMetadata.METADATA_KEY_MEDIA_URI);
+            final String artworkUri = uri, mediaId = id;
             final Bitmap frameworkArt = art;final String mediaTitle = title;
-            final long position = state.getPosition(), duration = m.getLong(MediaMetadata.METADATA_KEY_DURATION);
-            io.execute(() -> ContinueWatching.updatePrime(id, position, duration, mediaTitle,
-                    WatchArtwork.copy(frameworkArt, new int[2])));
+            io.execute(() -> ContinueWatching.updatePlayback(pkg, mediaId, position, duration, mediaTitle,
+                    WatchArtwork.copy(frameworkArt, new int[2]), artworkUri, launchUri));
         } catch (Exception ignored) {}
     }
 }
