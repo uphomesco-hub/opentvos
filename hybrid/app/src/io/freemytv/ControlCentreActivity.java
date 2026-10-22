@@ -37,7 +37,11 @@ public final class ControlCentreActivity extends Activity {
     @Override protected void onResume() {
         super.onResume(); resumed=true;
         if(root != null && (prefsVersion != Prefs.version || dark != night())) render();
-        if(panel!=null) { panel.setVisibility(View.VISIBLE); panel.post(this::restoreControlFocus); }
+        if(panel!=null) {
+            final int wanted=focusId==0?101:focusId;
+            panel.setVisibility(View.VISIBLE);focusId=wanted;
+            root.findViewById(wanted).requestFocus();panel.post(this::restoreControlFocus);
+        }
     }
     @Override protected void onPause() {
         resumed=false;
@@ -53,7 +57,7 @@ public final class ControlCentreActivity extends Activity {
     private void restoreControlFocus() {
         if(!resumed || closing || panel==null || panel.getVisibility()!=View.VISIBLE) return;
         View focused=panel.findFocus();
-        if(focused!=null && focused.isShown() && focused.isFocusable()) return;
+        if(focused!=null && focused.getId()==focusId && focused.isShown() && focused.isFocusable()) return;
         View wanted=root.findViewById(focusId==0?101:focusId);
         if(wanted==null || !wanted.isShown() || !wanted.isFocusable()) wanted=root.findViewById(101);
         wanted.requestFocus();
@@ -144,7 +148,10 @@ public final class ControlCentreActivity extends Activity {
         root.findViewById(105).setNextFocusLeftId(104);root.findViewById(105).setNextFocusRightId(105);
         wifi.setNextFocusRightId(102);bluetooth.setNextFocusRightId(103);standby.setNextFocusLeftId(101);
         avatar.setNextFocusLeftId(108);avatar.setNextFocusRightId(108);avatar.setNextFocusUpId(108);avatar.setNextFocusDownId(101);
-        setContentView(root);panel.post(this::restoreControlFocus);
+        final int wanted=focusId==0?101:focusId;
+        setContentView(root);
+        // setContentView may automatically focus the first child (the avatar); keep the intended control instead.
+        focusId=wanted;root.findViewById(wanted).requestFocus();panel.post(this::restoreControlFocus);
     }
     private View pill(int id,int resource,String name,String status,Runnable action) {
         LinearLayout v=new LinearLayout(this);v.setGravity(Gravity.CENTER_VERTICAL);v.setPadding(d(14),0,d(10),0);v.addView(icon(resource,22));
