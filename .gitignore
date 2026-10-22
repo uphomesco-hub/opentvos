@@ -16,3 +16,7 @@ local.properties
 /base/dist/
 /.keys/
 *.apk.idsig
+**/out/
+*.apk
+**/__pycache__/
+*.pyc
